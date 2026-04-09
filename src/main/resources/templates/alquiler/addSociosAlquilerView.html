@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Añadir socio a alquiler</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f4f4f4;
+            scroll-behavior: smooth;
+        }
+        nav {
+            background-color: #001a44;
+            color: white;
+            padding: 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            margin: 120px auto;
+            width: 90%;
+            max-width: 600px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+        }
+        h1 {
+            color: #001a44;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        form input, form select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        button, .btn-volver {
+            display: block;
+            margin: 20px auto 0;
+            padding: 10px 20px;
+            background-color: #001a44;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover, .btn-volver:hover {
+            background-color: #003a88;
+        }
+        .mensaje-error {
+            color: red;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .mensaje-success {
+            color: green;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Inicio</a>
+        <a href="/#socios">Socios</a>
+        <a href="/#reservas">Reservas</a>
+        <a href="/#patron">Patron</a>
+        <a href="/#alquileres">Alquileres</a>
+        <a href="/#embarcacion">Embarcacion</a>
+    </nav>
+
+    <div class="container">
+        <h1>Añadir socio a un alquiler</h1>
+
+        <div th:if="${error}" class="mensaje-error" th:text="${error}"></div>
+        <div th:if="${success}" class="mensaje-success" th:text="${success}"></div>
+
+        <form th:action="@{/addSociosAlquiler}" method="post">
+            <label for="idAlquiler">ID Alquiler:</label>
+            <input type="number" id="idAlquiler" name="idAlquiler" th:value="${idAlquiler}" min="1" required />
+
+            <label for="dniSocio">DNI Titular</label>
+            <select id="dniSocio" name="dniSocio" required>
+                <option value="" th:text="'-- Seleccione socio --'" disabled selected></option>
+                <option th:each="s : ${socios}" th:value="${s.dni}" th:text="${s.dni + ' - ' + s.nombre + ' ' + s.apellidos}"></option>
+            </select>
+
+            <button type="submit">Añadir socio</button>
+        </form>
+
+        <a th:href="@{/ListarAlquileres}" class="btn-volver">Volver a listado de alquileres</a>
+        <a href="/" class="btn-volver">Volver al inicio</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error al añadir socio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f4f4f4;
+        }
+        .container {
+            margin: 120px auto;
+            width: 90%;
+            max-width: 500px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+        .mensaje-error {
+            color: red;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .btn-volver {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #001a44;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .btn-volver:hover {
+            background-color: #003a88;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>No se pudo añadir el socio</h1>
+        <div class="mensaje-error" th:text="${error}">Ha ocurrido un error al intentar añadir el socio al alquiler.</div>
+        <a th:href="@{/addSociosAlquiler}" class="btn-volver">Volver al formulario</a>
+        <a href="/" class="btn-volver">Volver al inicio</a>
+    </div>
+</body>
+</html>

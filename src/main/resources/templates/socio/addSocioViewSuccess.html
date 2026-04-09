@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Socio Añadido</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            scroll-behavior: smooth;
+            background: #f4f4f4;
+        }
+        nav {
+            background-color: #001a44;
+            color: white;
+            padding: 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            margin: 120px auto;
+            width: 90%;
+            max-width: 600px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+        }
+        .btn-volver {
+            display: block;
+            margin: 20px auto 0;
+            width: fit-content;
+            padding: 10px 20px;
+            background-color: #001a44;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .btn-volver:hover {
+            background-color: #003a88;
+        }
+    </style>
+</head>
+<body>
+    <!-- NAVBAR -->
+<nav>
+    <a href="/">Inicio</a>
+    <a href="/#socios">Socios</a>
+    <a href="/#reservas">Reservas</a>
+    <a href="/#patron">Patrón</a>
+    <a href="/#alquileres">Alquileres</a>
+    <a href="/#embarcacion">Embarcación</a>
+</nav>
+    
+
+    <!-- CONTENIDO -->
+    <div class="container">
+        <h1>Socio añadido con éxito ✅</h1>
+        <div th:if="${socio != null}">
+            <p>DNI del socio:</p>
+            <p th:text="${socio.dni}"></p>
+        </div>
+        <div th:if="${socio == null}">
+            <p>Socio añadido con éxito.</p>
+        </div>
+        <a href="/addSocio" class="btn-volver">Volver al formulario</a>
+        <a href="/" class="btn-volver">Volver al inicio</a>
+    </div>
+</body>
+</html>

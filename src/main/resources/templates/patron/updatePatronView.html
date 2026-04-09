@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actualizar Patrón</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            scroll-behavior: smooth;
+            background: #f4f4f4;
+        }
+        nav {
+            background-color: #001a44;
+            color: white;
+            padding: 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            margin: 120px auto;
+            width: 90%;
+            max-width: 600px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+        }
+        h1 {
+            color: #001a44;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        form input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        button, .btn-volver {
+            display: block;
+            margin: 20px auto 0;
+            padding: 10px 20px;
+            background-color: #001a44;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover, .btn-volver:hover {
+            background-color: #003a88;
+        }
+        .mensaje-error {
+            color: red;
+            margin-top: 10px;
+            text-align: center;
+        }
+        .mensaje-success {
+            color: green;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<nav>
+    <a href="/">Inicio</a>
+    <a href="/#socios">Socios</a>
+    <a href="/#reservas">Reservas</a>
+    <a href="/#patron">Patrón</a>
+    <a href="/#alquileres">Alquileres</a>
+    <a href="/#embarcacion">Embarcación</a>
+</nav>
+
+    <div class="container">
+        <h1>Actualizar Datos del Patrón</h1>
+
+        <form action="/updatePatron" method="post" th:object="${patron}">
+            <label>DNI:</label>
+            <input type="text" th:field="*{dni_patron}" readonly />
+
+            <label>Nombre:</label>
+            <input type="text" th:field="*{nombre}" required />
+
+            <label>Apellido:</label>
+            <input type="text" th:field="*{apellido}" required />
+
+            <label>Fecha de Nacimiento:</label>
+            <input type="date" th:field="*{fecha_nacimiento}" required />
+
+            <button type="submit">Actualizar</button>
+            <a href="/" class="btn-volver">Volver al inicio</a>
+        </form>
+
+        <div th:if="${message}" class="mensaje-success">
+            <p th:text="${message}"></p>
+        </div>
+
+        <div th:if="${error}" class="mensaje-error">
+            <p th:text="${error}"></p>
+        </div>
+    </div>
+</body>
+</html>

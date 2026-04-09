@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Asignación correcta</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; }
+        .container {
+            margin: 120px auto;
+            max-width: 600px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+        a.btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 10px;
+            background-color: #001a44;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        a.btn:hover { background-color: #003a88; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Asignación realizada con éxito</h1>
+        <p>Se ha asignado el patrón <strong th:text="${patron.dni_patron}">DNI</strong>
+           a la embarcación <strong th:text="${asignacion.matricula}">Matrícula</strong>
+           en la fecha <strong th:text="${fechaInicio}">fecha</strong>
+           <span th:if="${fechaFin != null}"> (hasta <strong th:text="${fechaFin}">fecha fin</strong>)</span>.
+        </p>
+        <a th:href="@{/AsignarPatronEmbarcacion}" class="btn">Volver a Asignar</a>
+        <a href="/" class="btn">Volver al inicio</a>
+    </div>
+</body>
+</html>

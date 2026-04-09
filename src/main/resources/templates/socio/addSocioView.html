@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nuevo Socio</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f7f7f7;
+        }
+
+        /* NAVBAR */
+        nav {
+            background-color: #001a44;
+            color: white;
+            padding: 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        /* CONTENEDOR PRINCIPAL */
+        .container {
+            margin: 120px auto;
+            width: 90%;
+            max-width: 600px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+        }
+
+        h1 {
+            text-align: center;
+            color: #001a44;
+            margin-bottom: 25px;
+        }
+
+        /* FORMULARIO */
+        label {
+            font-weight: bold;
+            color: #001a44;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 18px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        input[type="checkbox"] {
+            transform: scale(1.3);
+            margin: 10px 0;
+        }
+
+        /* BOTÓN */
+        input[type="submit"] {
+            width: 100%;
+            background-color: #001a44;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #003a88;
+        }
+
+        /* BOTÓN VOLVER */
+        .btn-volver {
+            display: block;
+            margin: 20px auto 0;
+            width: fit-content;
+            padding: 10px 20px;
+            background-color: #001a44;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .btn-volver:hover {
+            background-color: #003a88;
+        }
+    </style>
+
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+    <a href="/">Inicio</a>
+    <a href="/#socios">Socios</a>
+    <a href="/#reservas">Reservas</a>
+    <a href="/#patron">Patrón</a>
+    <a href="/#alquileres">Alquileres</a>
+    <a href="/#embarcacion">Embarcación</a>
+</nav>
+
+<!-- FORMULARIO -->
+<div class="container">
+
+    <h1>Formulario de Inscripción Individual</h1>
+
+    <form method="POST" th:action="@{/addSocio}" th:object="${newSocio}">
+
+        <label for="dni">DNI:</label>
+        <input type="text" th:field="*{dni}" required />
+
+        <label for="nombre">Nombre:</label>
+        <input type="text" th:field="*{nombre}" required />
+
+        <label for="apellidos">Apellidos:</label>
+        <input type="text" th:field="*{apellidos}" required />
+
+        <label for="fechaNacimiento">Fecha de Nacimiento:</label>
+        <input type="date" th:field="*{fechaNacimiento}" required />
+
+        <label for="direccion">Dirección:</label>
+        <input type="text" th:field="*{direccion}" required />
+
+        <label for="tituloPatron">¿Tiene título de Patrón?</label><br>
+        <input type="checkbox" th:field="*{tituloPatron}" /><br><br>
+        <div>
+            <label for="fechaInscripcion">Fecha de inscripción:</label>
+            <input type="date" id="fechaInscripcion" th:field="*{fechaInscripcion}" required>
+        </div>
+
+        <label for="tipo">Tipo de Inscripción:</label><br>
+        <p><strong>Individual</strong></p>
+        <!-- Envío oculto del tipo: siempre 'Individual' en este formulario -->
+        <input type="hidden" name="tipo" value="Individual" />
+        <br>
+
+        <input type="submit" value="Guardar" />
+    </form>
+
+    <a href="/" class="btn-volver">Volver al inicio</a>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>Listado de Inscripciones</title>
+
+	<style>
+		body { font-family: Arial, sans-serif; margin: 0; background-color: #f7f7f7; }
+		nav { background-color: #001a44; color: white; padding: 1rem; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; display: flex; justify-content: center; gap: 2rem; }
+		nav a { color: white; text-decoration: none; font-weight: bold; }
+		nav a:hover { text-decoration: underline; }
+		.container { margin: 120px auto; width: 90%; max-width: 900px; background: white; padding: 25px; border-radius: 10px; box-shadow: 0px 4px 12px rgba(0,0,0,0.15); }
+		h1 { text-align: center; color: #001a44; }
+		table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+		th { background-color: #001a44; color: white; padding: 12px; text-align: left; }
+		td { padding: 10px; border-bottom: 1px solid #ddd; }
+		tr:hover { background-color: #e6eef9; transform: scale(1.005); transition: 0.15s; }
+		.btn { display: inline-block; padding: 8px 12px; background:#001a44; color:white; border-radius:6px; text-decoration:none; }
+		.btn:hover { background:#003a88; }
+		.mensaje { text-align:center; padding:20px; color:#444; }
+	</style>
+
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+	<a href="/">Inicio</a>
+	<a href="/#socios">Socios</a>
+	<a href="/#reservas">Reservas</a>
+	<a href="/#patron">Patrón</a>
+	<a href="/#alquileres">Alquileres</a>
+	<a href="/#embarcacion">Embarcación</a>
+</nav>
+
+<div class="container">
+	<h1>Listado de Inscripciones</h1>
+
+	<div th:if="${inscripciones == null or #lists.isEmpty(inscripciones)}" class="mensaje">
+		No hay inscripciones disponibles.
+	</div>
+
+	<table th:if="${inscripciones != null}">
+		<thead>
+			<tr>
+				<th>ID</th>
+				<th>Tipo</th>
+				<th>Acciones</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:each="inscripcion : ${inscripciones}">
+				<td th:text="${inscripcion.id}">1</td>
+				<td th:text="${inscripcion.tipo}">Individual</td>
+				<td>
+					<a th:href="@{/listarSociosPorInscripcion(idInscripcion=${inscripcion.id})}" class="btn">Ver socios</a>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<div style="margin-top:18px; text-align:center;">
+		<a href="/" class="btn">Volver al inicio</a>
+	</div>
+
+</div>
+
+</body>
+</html>
+

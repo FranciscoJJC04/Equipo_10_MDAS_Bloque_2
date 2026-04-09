@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Club Náutico</title>
+
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            scroll-behavior: smooth;
+        }
+
+        /* NAVBAR */
+        nav {
+            background-color: #001a44;
+            color: white;
+            padding: 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        /* SECTIONS */
+        section {
+            padding: 100px 20px;
+            margin-top: 80px;
+        }
+
+        h2 {
+            border-left: 5px solid #001a44;
+            padding-left: 10px;
+        }
+
+        .card {
+            background: #f4f4f4;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        #inicio {
+
+            background-image: url('/images/FONDO2.png');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;   /* ocupa toda la pantalla */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding-top: 80px; /* para evitar que el navbar solape */
+        }
+        /* Animación general para tarjetas (cards) */
+        .card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+
+        /* Efecto hover: se eleva y hace un poco de zoom */
+        .card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0px 6px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Para que los botones de los <form> no quiten el hover */
+        button div.card {
+            width: 100%;
+            text-align: left;
+        }
+
+        /* Quitar borde feo del botón invisible */
+        button {
+            border: none;
+        }
+
+        /* Para que el texto dentro de las cards no cambie de color al hacer hover */
+        a:hover, button:hover {
+            color: inherit;
+        }
+
+
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+    <a href="#inicio">Inicio</a>
+    <a href="#socios">Socios</a>
+    <a href="#reservas">Reservas</a>
+    <a href="#patron">Patron</a>
+    <a href="#alquileres">Alquileres</a>
+    <a href="#embarcacion">Embarcacion</a>
+</nav>
+
+<!-- SECCIÓN INICIO -->
+<header id="inicio">
+    <div style="background-color: #001a44e5;border-radius: 10px; padding: 20px;">
+        <h1 style = "color: white"> ⚓ Bienvenido al Club Náutico</h1>
+    </div>
+</header>
+
+
+
+<!-- SECCIÓN SOCIOS -->
+<section id="socios">
+    <h2>Socios</h2>
+
+    <a th:href="@{/verSocios}" style="text-decoration: none; color: inherit;">
+        <div class="card">
+            <h3>Listar Socios</h3>
+            <p> Tabla que contiene a todos los socios.</p>
+        </div>
+    </a>
+
+    <a th:href="@{/addSocio}" style="text-decoration: none; color: inherit;">
+        <div class="card">
+            <h3>Insertar Socio Individual</h3>
+            <p> Formulario para añadir un nuevo socio con inscripcion individual.</p>
+        </div>
+    </a>
+
+    <a th:href="@{/nuevaInscripcionFamiliar}" style="text-decoration: none; color: inherit;">
+        <div class="card">
+            <h3>Insertar Socio Familiar</h3>
+            <p> Formulario para añadir un nuevo socio con inscripcion familiar.</p>
+        </div>
+    </a>
+
+    <a th:href="@{/concederTitulo}" style="text-decoration: none; color: inherit;">
+        <div class="card">
+            <h3>Añadir Titulo de Patrón</h3>
+            <p>Añadir el titulo del patron a un socio.</p>
+        </div>
+    </a>
+
+    <form th:action="@{/addConyuge}" method="get" style="text-decoration: none; color: inherit;">
+        <button type="submit" style="all: unset; cursor: pointer; width: 100%;">
+            <div class="card">
+                <h3>Añadir Cónyuge</h3>
+                <p>Añadir cónyuge a la inscripción familiar del socio.</p>
+                <input type="text" name="dniTitular" placeholder="DNI del titular" required
+               style="margin-bottom: 10px; padding: 8px; width: 100%;">
+            </div>
+        </button>
+    </form>
+
+    <form th:action="@{/addHijo}" method="get" style="text-decoration: none; color: inherit;">
+        <button type="submit" style="all: unset; cursor: pointer; width: 100%;">
+            <div class="card">
+                <h3>Añadir Hijo</h3>
+                <p>Añadir hij@ a la inscripción familiar del socio.</p>
+                <input type="text" name="dniTitular" placeholder="DNI del titular" required
+            style="margin-bottom: 10px; padding: 8px; width: 100%;">
+            </div>
+        </button>
+    </form>
+
+    <form th:action="@{/gestionFamiliar}" method="get" style="text-decoration: none; color: inherit;">
+        <button type="submit" style="all: unset; cursor: pointer; width: 100%;">
+            <div class="card">
+                <h3>Ver inscripcion familiar</h3>
+                <p>Gestion de la Familia.</p>
+                <input type="text" name="dni" placeholder="DNI del titular" required
+            style="margin-bottom: 10px; padding: 8px; width: 100%;">
+            </div>
+        </button>
+    </form>
+
+<!-- SECCIÓN RESERVAS -->
+<section id="reservas">
+    <h2>Reservas</h2>
+
+    <a th:href="@{/ListarReservas}" style="text-decoration: none; color: inherit;">
+        <div class="card">
+            <h3>Listar Reservas</h3>
+            <p>Listado de las reservas creadas.</p>
+        </div>
+    </a>
+
+    <a th:href="@{/addReserva}" style="text-decoration: none; color: inherit;">
+        <div class="card">
+            <h3>Crear Reserva</h3>
+            <p>Crear una reserva con su dni, eligiendo la embarcación, numero de pasajeros y la fecha.</p>
+        </div>
+    </a>
+
+</section>
+
+<!-- SECCIÓN Patron -->
+<section id="patron">
+    <h2>Patron</h2>
+    <a th:href="@{/addPatron}" style="text-decoration: none; color: inherit;">
+        <div class="card">
+            <h3>Nuevo Patron</h3>
+            <p>Formulario para resgistrarse como un nuevo patron.</p>
+        </div>
+    </a>
+
+    <a th:href="@{/ListarPatrones}" style="text-decoration: none; color: inherit;">
+        <div class="card">
+            <h3>Listar Patrones</h3>
+            <p>Lista de los patrones registrados.</p>
+        </div>
+    </a>
+
+    <form th:action="@{/updatePatron}" method="get" style="text-decoration: none; color: inherit;">
+        <button type="submit" style="all: unset; cursor: pointer; width: 100%;">
+            <div class="card">
+                <h3>Actualizar Patron</h3>
+                <p>Formulario para actualizar los datos de un patron.</p>
+                <input type="text" name="dni" placeholder="DNI del titular" required
+            style="margin-bottom: 10px; padding: 8px; width: 100%;">
+            </div>
+        </button>
+    </form>
+</section>
+
+<!-- SECCIÓN ALQUILERES -->
+<section id="alquileres">
+    <h2>Alquileres</h2>
+
+    <a th:href="@{/addAlquiler}" style="text-decoration: none; color: inherit;">
+        <div class="card">
+            <h3>Crear un Alquiler</h3>
+            <p>Formulario para la creacion de un alquiler.</p>
+        </div>
+    </a>
+
+    <a th:href="@{/ListarAlquileres}" style="text-decoration: none; color: inherit;">
+        <div class="card">
+            <h3>Listar Alquileres</h3>
+            <p>Lista de los alquileres creados.</p>
+        </div>
+    </a>
+
+     <a th:href="@{/addSociosAlquiler}" style="text-decoration: none; color: inherit;">
+        <div class="card">
+            <h3>Añadir un socio a un alquiler</h3>
+            <p>Formulario para añadir un socio a un alquiler.</p>
+        </div>
+    </a>
+</section>
+
+<!-- SECCIÓN EMBARCACIONES -->
+<section id="embarcacion">
+    <h2>Embarcaciones</h2>
+    <a th:href="@{/addEmbarcacion}" style="text-decoration: none; color: inherit;">
+        <div class="card">
+            <h3>Añadir Embarcacion</h3>
+            <p>Formulario para añadir una nueva embarcacion.</p>
+        </div>
+    </a>
+
+    <form th:action="@{/listarEmbarcacionesPorTipo}" method="get" style="text-decoration: none; color: inherit;">
+        <button type="submit" style="all: unset; cursor: pointer; width: 100%;">
+            <div class="card">
+                <h3>Listar Embarcacion Por Tipo</h3>
+                <p>Listado de Embarcaciones registradas con su tipo(YATE, VELERO o LANCHA).</p>
+                <input type="text" name="tipo" placeholder="Tipo de embarcacion" required
+            style="margin-bottom: 10px; padding: 8px; width: 100%;">
+            </div>
+        </button>
+    </form>
+
+    <a th:href="@{/listarAsignaciones}" style="text-decoration: none; color: inherit;">
+        <div class="card">
+            <h3>Listar Patron asignado a cada Embarcacion</h3>
+            <p>Listado de las embarcaciones q tienen asiganado a un patron.</p>
+        </div>
+    </a>
+
+    <!--<form th:action="@{/listarEmbarcacionesPorFecha}" method="get" style="text-decoration: none; color: inherit;">
+        <button type="submit" style="all: unset; cursor: pointer; width: 100%;">
+            <div class="card">
+                <h3>Listar Embarcacion Por Fecha</h3>
+                <p>Listado de Embarcaciones registradas por fecha.</p>
+            </div>
+        </button>
+        <input type="text" name="fecha" placeholder="Fecha" required
+            style="margin-bottom: 10px; padding: 8px; width: 100%;">
+    </form>*/ -->
+
+    <a th:href="@{/AsignarPatronEmbarcacion}" style="text-decoration: none; color: inherit;">
+        <div class="card">
+            <h3>Asignar Patron a Embarcacion</h3>
+            <p>Formulario para asigar un patron a una embarcacion.</p>
+        </div>
+    </a>
+</section>
+
+</body>
+</html>

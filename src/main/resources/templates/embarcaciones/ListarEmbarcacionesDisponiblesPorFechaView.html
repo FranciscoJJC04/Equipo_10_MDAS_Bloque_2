@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Embarcaciones disponibles</title>
+    
+</head>
+<body>
+    <h1>Listado de embarcaciones disponibles</h1>
+
+    <form th:action="@{/ListarEmbarcacionesDisponiblesPorFecha}" method="get">
+        <label>Fecha inicio: <input type="date" name="inicio" th:value="${inicio}"/></label>
+        <label>Fecha fin: <input type="date" name="fin" th:value="${fin}"/></label>
+        <button type="submit">Buscar</button>
+    </form>
+
+    <div th:if="${error != null}" class="error">
+        <p th:text="${error}"></p>
+    </div>
+
+    <div th:if="${embarcaciones == null}">
+        <p class="empty">No hay resultados.</p>
+    </div>
+
+    <div th:if="${embarcaciones!= null}">
+        <h2 th:if="${#lists.isEmpty(embarcaciones)}">No hay embarcaciones disponibles en ese periodo.</h2>
+        <table th:if="${!#lists.isEmpty(embarcaciones)}">
+            <thead>
+                <tr>
+                    <th>Matrícula</th>
+                    <th>Tipo</th>
+                    <th>Nombre</th>
+                    <th>Plazas</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="e : ${embarcaciones}">
+                    <td th:text="${e.matricula}"></td>
+                    <td th:text="${e.tipo}"></td>
+                    <td th:text="${e.nombre}"></td>
+                    <td th:text="${e.numPlazas}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>
+

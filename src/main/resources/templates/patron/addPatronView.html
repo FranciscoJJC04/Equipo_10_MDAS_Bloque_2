@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Patrón</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            scroll-behavior: smooth;
+            background: #f4f4f4;
+        }
+        nav {
+            background-color: #001a44;
+            color: white;
+            padding: 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            margin: 120px auto;
+            width: 90%;
+            max-width: 600px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+        }
+        h1 {
+            text-align: center;
+            color: #001a44;
+            margin-bottom: 25px;
+        }
+        form label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        form input[type="text"],
+        form input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+        form input[type="submit"],
+        .btn-volver {
+            margin-top: 20px;
+            width: 100%;
+            padding: 10px 0;
+            background-color: #001a44;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+        }
+        form input[type="submit"]:hover,
+        .btn-volver:hover {
+            background-color: #003a88;
+        }
+    </style>
+</head>
+<body>
+    <!-- NAVBAR -->
+<nav>
+    <a href="/">Inicio</a>
+    <a href="/#socios">Socios</a>
+    <a href="/#reservas">Reservas</a>
+    <a href="/#patron">Patrón</a>
+    <a href="/#alquileres">Alquileres</a>
+    <a href="/#embarcacion">Embarcación</a>
+</nav>
+
+    <div class="container">
+        <h1>Nuevo Patrón</h1>
+        <form method="POST" th:action="@{/addPatron}" th:object="${newPatron}">
+            <label for="dni">DNI:</label>
+            <input type="text" id="dni" th:field="*{dni_patron}" required />
+
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" th:field="*{nombre}" required />
+
+            <label for="apellidos">Apellidos:</label>
+            <input type="text" id="apellidos" th:field="*{apellido}" required />
+
+            <label for="fechaNacimiento">Fecha de Nacimiento:</label>
+            <input type="date" id="fechaNacimiento" th:field="*{fecha_nacimiento}" required />
+
+            <input type="submit" value="Guardar"><br>
+        </form>
+        <a href="/" class="btn-volver">Volver al inicio</a>
+    </div>
+</body>
+</html>

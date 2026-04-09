@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Listado de Socios</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f7f7f7;
+        }
+
+        /* NAVBAR */
+        nav {
+            background-color: #001a44;
+            color: white;
+            padding: 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        /* CONTENEDOR */
+        .container {
+            margin: 120px auto;
+            width: 90%;
+            max-width: 1100px;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+        }
+
+        h1 {
+            text-align: center;
+            color: #001a44;
+        }
+
+        /* TABLA */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th {
+            background-color: #001a44;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:hover {
+            background-color: #e6eef9;
+            transform: scale(1.005);
+            transition: 0.2s;
+        }
+
+        /* BOTÓN VOLVER */
+        .btn-volver {
+            display: block;
+            margin: 20px auto 0;
+            width: fit-content;
+            padding: 10px 20px;
+            background-color: #001a44;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .btn-volver:hover {
+            background-color: #003a88;
+        }
+    </style>
+
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+    <a href="/">Inicio</a>
+    <a href="/#socios">Socios</a>
+    <a href="/#reservas">Reservas</a>
+    <a href="/#patron">Patrón</a>
+    <a href="/#alquileres">Alquileres</a>
+    <a href="/#embarcacion">Embarcación</a>
+</nav>
+
+<!-- CONTENEDOR -->
+<div class="container">
+
+    <h1>Listado de Socios</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>DNI</th>
+                <th>Nombre</th>
+                <th>Apellidos</th>
+                <th>Fecha de Nacimiento</th>
+                <th>Dirección</th>
+                <th>Fecha de Inscripción</th>
+                <th>Título de Patrón</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="socio : ${socios}">
+                <td th:text="${socio.dni}"></td>
+                <td th:text="${socio.nombre}"></td>
+                <td th:text="${socio.apellidos}"></td>
+                <td th:text="${socio.fechaNacimiento}"></td>
+                <td th:text="${socio.direccion}"></td>
+                <td th:text="${socio.fechaInscripcion}"></td>
+                <td th:text="${socio.tituloPatron ? 'Sí' : 'No'}"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="/" class="btn-volver">Volver al inicio</a>
+
+</div>
+
+</body>
+</html>

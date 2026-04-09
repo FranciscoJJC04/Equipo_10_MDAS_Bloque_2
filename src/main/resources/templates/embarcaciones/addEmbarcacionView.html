@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Embarcación</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f4f4f4;
+        }
+        nav {
+            background-color: #001a44;
+            color: white;
+            padding: 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            z-index: 1000;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            margin: 120px auto;
+            max-width: 600px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+        }
+        h1 {
+            text-align: center;
+            color: #001a44;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+        button, input[type="submit"], a.btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 10px;
+            background-color: #001a44;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+        }
+        button:hover, input[type="submit"]:hover, a.btn:hover {
+            background-color: #003a88;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Inicio</a>
+        <a href="#socios">Socios</a>
+        <a href="#reservas">Reservas</a>
+        <a href="#alquileres">Alquileres</a>
+        <a href="#embarcacion">Embarcación</a>
+    </nav>
+
+    <div class="container">
+        <h1>Añadir Nueva Embarcación</h1>
+        <form method="POST" th:action="@{/addEmbarcacion}" th:object="${newEmbarcacion}">
+            <label for="matricula">Matrícula:</label>
+            <input type="text" th:field="*{matricula}" required>
+
+            <label for="nombre">Nombre:</label>
+            <input type="text" th:field="*{nombre}" required>
+
+            <label for="numPlazas">Número de plazas:</label>
+            <input type="number" th:field="*{numPlazas}" required>
+
+            <label for="tipo">Tipo:</label>
+            <select th:field="*{tipo}">
+                <option th:each="t : ${tipos}" th:value="${t}" th:text="${t}"></option>
+            </select>
+
+            <input type="submit" value="Guardar">
+        </form>
+
+        <a href="/" class="btn">Volver al inicio</a>
+    </div>
+</body>
+</html>

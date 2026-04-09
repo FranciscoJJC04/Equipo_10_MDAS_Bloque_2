@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socios del Alquiler</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f4f4f4;
+        }
+        nav {
+            background-color: #001a44;
+            color: white;
+            padding: 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            margin: 120px auto;
+            width: 90%;
+            max-width: 800px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+        }
+        h1 {
+            text-align: center;
+            color: #001a44;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #001a44;
+            color: white;
+        }
+        a.btn {
+            display: inline-block;
+            padding: 8px 15px;
+            margin: 5px;
+            background-color: #001a44;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        a.btn:hover {
+            background-color: #003a88;
+        }
+        .mensaje {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Inicio</a>
+        <a href="#socios">Socios</a>
+        <a href="#reservas">Reservas</a>
+        <a href="#patron">Patron</a>
+        <a href="#alquileres">Alquileres</a>
+        <a href="#embarcacion">Embarcacion</a>
+    </nav>
+
+    <div class="container">
+        <h1>Socios asociados al alquiler <span th:text="${idAlquiler}"></span></h1>
+
+        <div th:if="${#lists.isEmpty(socios)}" class="mensaje">
+            <p>No hay socios asociados a este alquiler.</p>
+        </div>
+
+        <table th:if="${!#lists.isEmpty(socios)}">
+            <thead>
+                <tr>
+                    <th>DNI</th>
+                    <th>Nombre</th>
+                    <th>Apellidos</th>
+                    <th>Fecha de Nacimiento</th>
+                    <th>Dirección</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="s : ${socios}">
+                    <td th:text="${s.dni}"></td>
+                    <td th:text="${s.nombre}"></td>
+                    <td th:text="${s.apellidos}"></td>
+                    <td th:text="${#temporals.format(s.fechaNacimiento,'dd/MM/yyyy')}"></td>
+                    <td th:text="${s.direccion}"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <a th:href="@{/addSociosAlquiler}" class="btn">Añadir socio</a>
+        <a th:href="@{/ListarAlquileres}" class="btn">Volver al listado de alquileres</a>
+        <a href="/" class="btn">Volver al inicio</a>
+    </div>
+</body>
+</html>

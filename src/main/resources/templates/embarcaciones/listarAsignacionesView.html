@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Listado de Asignaciones</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+        .container {
+            margin: 80px auto;
+            max-width: 800px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        h2 { text-align: center; color: #001a44; margin-bottom: 20px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        th { background-color: #001a44; color: white; }
+        a.btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #001a44;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        a.btn:hover { background-color: #003a88; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Listado de Asignaciones de Patrones a Embarcaciones</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha Inicio</th>
+                    <th>Fecha Fin</th>
+                    <th>Matrícula Embarcación</th>
+                    <th>DNI Patrón</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="a : ${asignaciones}">
+                    <td th:text="${a['fecha_asignacion']}"></td>
+                    <td th:text="${a['fecha_fin']}"></td>
+                    <td th:text="${a['matricula']}"></td>
+                    <td th:text="${a['dni_patron']}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <a href="/" class="btn">Volver al inicio</a>
+    </div>
+</body>
+</html>
