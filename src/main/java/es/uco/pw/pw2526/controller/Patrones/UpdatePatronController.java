@@ -31,7 +31,7 @@ public class UpdatePatronController {
             // Buscar patrón existente
             try {
                 Patron patron = patronRepository.obtenerPatrones().stream()
-                    .filter(p -> p.getDni_patron().equals(dni))
+                    .filter(p -> p.getDniPatron().equals(dni))
                     .findFirst()
                     .orElse(null);
 
@@ -52,7 +52,7 @@ public class UpdatePatronController {
     public ModelAndView actualizarPatron(@ModelAttribute Patron patronActualizado) {
         ModelAndView mv = new ModelAndView("updatePatronView");
 
-        if (patronActualizado == null || patronActualizado.getDni_patron() == null || patronActualizado.getDni_patron().isBlank()) {
+        if (patronActualizado == null || patronActualizado.getDniPatron() == null || patronActualizado.getDniPatron().isBlank()) {
             mv.addObject("status", "ERROR");
             mv.addObject("message", "DNI no válido.");
             return mv;

@@ -42,51 +42,51 @@ public class DemoClientSocios {
      */
 	private static void sendGetRequests()
 	{
-		
-		RestTemplate rest = new RestTemplate();
-		String baseURL = "http://localhost:8080";
+		// Refactor Semana 1 (nombrado): nombres de variables orientados al dominio y su contenido.
+		RestTemplate restTemplate = new RestTemplate();
+		String baseApiUrl = "http://localhost:8080";
 
 		// Listado de todos los socios
-		ResponseEntity<Socio[]> response = rest.getForEntity(baseURL + "/api/socio", Socio[].class);
-		List<Socio> listOfSocios = Arrays.asList(response.getBody());
+		ResponseEntity<Socio[]> responseSocios = restTemplate.getForEntity(baseApiUrl + "/api/socio", Socio[].class);
+		List<Socio> socios = Arrays.asList(responseSocios.getBody());
 		System.out.println("==== REQUEST 1: GET all socios ====");
-		Date date = new Date(response.getHeaders().getDate());
-		System.out.println("Response date: " + date);
-		for(Socio s: listOfSocios){
-			System.out.println(s);
+		Date responseDate = new Date(responseSocios.getHeaders().getDate());
+		System.out.println("Response date: " + responseDate);
+		for(Socio socioItem: socios){
+			System.out.println(socioItem);
 			System.out.println("--------------");
 		}
 
 		// Request to retrive one student
-        String dni = "21872274A";
-		Socio socio = rest.getForObject(baseURL + "/api/socio/{dni}", Socio.class, dni);
+        String dniSocioConsulta = "21872274A";
+		Socio socio = restTemplate.getForObject(baseApiUrl + "/api/socio/{dni}", Socio.class, dniSocioConsulta);
 		System.out.println("==== REQUEST 2: GET socio with dni ====");
 		System.out.println(socio.toString());
 
 		//Obtener la información de una inscripción a partir del dni de un socio
 		try {
-			Inscripcion inscripcion = rest.getForObject(
-			baseURL + "/api/socio/inscripciones/{dni}", 
+			Inscripcion inscripcion = restTemplate.getForObject(
+			baseApiUrl + "/api/socio/inscripciones/{dni}", 
 			Inscripcion.class, 
-			dni
+			dniSocioConsulta
 		);
 		System.out.println("==== REQUEST 3: GET inscripción por DNI ====");
 		System.out.println(inscripcion);
 		} catch (HttpClientErrorException e) 
 		{
-			System.out.println("No se encontró inscripción para el DNI: " + dni);
+			System.out.println("No se encontró inscripción para el DNI: " + dniSocioConsulta);
 			System.out.println("Error: " + e.getResponseBodyAsString());
 		}
 
 	// Listado de inscripciones familiares
     try {
-        ResponseEntity<Inscripcion[]> respFamiliares =
-                rest.getForEntity(baseURL + "/api/socio/inscripciones/familiares", Inscripcion[].class);
-        List<Inscripcion> familiares = Arrays.asList(respFamiliares.getBody());
+		ResponseEntity<Inscripcion[]> responseInscripcionesFamiliares =
+			restTemplate.getForEntity(baseApiUrl + "/api/socio/inscripciones/familiares", Inscripcion[].class);
+		List<Inscripcion> inscripcionesFamiliares = Arrays.asList(responseInscripcionesFamiliares.getBody());
 
         System.out.println("==== REQUEST 4: GET inscripciones familiares ====");
-        for (Inscripcion i : familiares) {
-            System.out.println(i);
+		for (Inscripcion inscripcionFamiliar : inscripcionesFamiliares) {
+		    System.out.println(inscripcionFamiliar);
             System.out.println("--------------");
         }
     } catch (HttpClientErrorException e) {
@@ -95,13 +95,13 @@ public class DemoClientSocios {
 
 	// Listado de inscripciones individuales
 	try {
-		ResponseEntity<Inscripcion[]> respIndividuales =
-				rest.getForEntity(baseURL + "/api/socio/inscripciones/individuales", Inscripcion[].class);
-		List<Inscripcion> individuales = Arrays.asList(respIndividuales.getBody());
+		ResponseEntity<Inscripcion[]> responseInscripcionesIndividuales =
+				restTemplate.getForEntity(baseApiUrl + "/api/socio/inscripciones/individuales", Inscripcion[].class);
+		List<Inscripcion> inscripcionesIndividuales = Arrays.asList(responseInscripcionesIndividuales.getBody());
 
 		System.out.println("==== REQUEST 6: GET inscripciones individuales ====");
-		for (Inscripcion i : individuales) {
-			System.out.println(i);
+		for (Inscripcion inscripcionIndividual : inscripcionesIndividuales) {
+			System.out.println(inscripcionIndividual);
 			System.out.println("--------------");
 		}
 	} catch (HttpClientErrorException e) {
@@ -118,57 +118,58 @@ public class DemoClientSocios {
 	 */
 	private static void sendPostRequests()
 	{
-		RestTemplate rest = new RestTemplate();
-		String baseURL = "http://localhost:8080";
+		// Refactor Semana 1 (nombrado): nombres pronunciables y sin abreviaturas ambiguas.
+		RestTemplate restTemplate = new RestTemplate();
+		String baseApiUrl = "http://localhost:8080";
 
 		// // POST a new socio (valid)
-		LocalDate birthDate = LocalDate.of(1997, 07, 22);
-		Socio newSocio = new Socio("24556677K", "Ignacio", "Torres Marquez",birthDate,
+		LocalDate fechaNacimientoNuevoSocio = LocalDate.of(1997, 07, 22);
+		Socio socioNuevo = new Socio("24556677K", "Ignacio", "Torres Marquez",fechaNacimientoNuevoSocio,
 				"Av. del Mar 30, Córdoba", true, 300, LocalDate.now(), 32381, es.uco.pw.pw2526.model.domain.socio.TipoInscripcion.INDIVIDUAL);
-		ResponseEntity<Socio> response;
+		ResponseEntity<Socio> apiResponse;
 		
 		try{
-			response = rest.postForEntity(baseURL + "/api/socio", newSocio, Socio.class);	
+			apiResponse = restTemplate.postForEntity(baseApiUrl + "/api/socio", socioNuevo, Socio.class);	
 			System.out.println("==== REQUEST 7: POST socio (valid) ====");
-			System.out.println("Status code: " + response.getStatusCode());
-			System.err.println("Response body:\n" + response.getBody());
+			System.out.println("Status code: " + apiResponse.getStatusCode());
+			System.err.println("Response body:\n" + apiResponse.getBody());
 		}catch(HttpClientErrorException exception){
 			System.out.println(exception);
 		}
 
 		// POST a student (invalid)
-		newSocio.setDni("44556677D");
-		newSocio.setNombre("Carlos");
-		newSocio.setApellidos("Raigon Serrano");
-		newSocio.setFechaNacimiento(birthDate);
-		newSocio.setDireccion("Av. del Mar 20, Córdoba");
-		newSocio.setTituloPatron(false);
-		newSocio.setFechaInscripcion(LocalDate.now());
-		newSocio.setCuotaInscripcion(150);
+		socioNuevo.setDni("44556677D");
+		socioNuevo.setNombre("Carlos");
+		socioNuevo.setApellidos("Raigon Serrano");
+		socioNuevo.setFechaNacimiento(fechaNacimientoNuevoSocio);
+		socioNuevo.setDireccion("Av. del Mar 20, Córdoba");
+		socioNuevo.setTituloPatron(false);
+		socioNuevo.setFechaInscripcion(LocalDate.now());
+		socioNuevo.setCuotaInscripcion(150);
 		
 
 		System.out.println("==== REQUEST 8: POST socio (invalid) ====");
 		try{
-			response = rest.postForEntity(baseURL + "/api/socio", newSocio, Socio.class);
+			apiResponse = restTemplate.postForEntity(baseApiUrl + "/api/socio", socioNuevo, Socio.class);
 		}catch(HttpClientErrorException exception){
 			System.out.println(exception);
 		}
 
 // 		//Crear un nuevo socio asociándolo a una inscripción familiar ya existente
-			LocalDate birthDate3 = LocalDate.of(1999, 11, 29);
-			Socio socioExistingIns = new Socio("61729564Ñ", "Almudena", "Sanchez", birthDate3,
+			LocalDate fechaNacimientoSocioFamiliar = LocalDate.of(1999, 11, 29);
+			Socio socioConInscripcionFamiliar = new Socio("61729564Ñ", "Almudena", "Sanchez", fechaNacimientoSocioFamiliar,
 					"Camino los Naranjeros, 13", false, 250, LocalDate.now(), 32382,
 					es.uco.pw.pw2526.model.domain.socio.TipoInscripcion.FAMILIAR);
 			System.out.println("==== REQUEST 9: POST socio (usando una inscripcion familiar existente) ====");
 			try {
-					response = rest.postForEntity(
-					baseURL + "/api/socio/familiar/{idInscripcion}",
-					socioExistingIns,
+					apiResponse = restTemplate.postForEntity(
+					baseApiUrl + "/api/socio/familiar/{idInscripcion}",
+					socioConInscripcionFamiliar,
 					Socio.class,
 					32382 // id de inscripción familiar existente
 				);
-				System.out.println("Status code: " + response.getStatusCode());
-				System.out.println("Response body: " + response.getBody());
+				System.out.println("Status code: " + apiResponse.getStatusCode());
+				System.out.println("Response body: " + apiResponse.getBody());
 			} catch (HttpClientErrorException exception) {
 				System.out.println(exception);
 			}

@@ -21,8 +21,8 @@ public class DemoClientReserva {
     public static void main(String[] args) {
         sendGetRequests();
         sendPostRequests();
-        sendPatchRequestFecha(); // Renombrado para evitar duplicados
-        sendPatchRequestDatos(); // Renombrado para evitar duplicados
+        sendPatchRequestForDate();
+        sendPatchRequestForDetails();
         sendDeleteRequest();
     }
 
@@ -31,28 +31,29 @@ public class DemoClientReserva {
      * <p>Obtiene todas las reservas, las reservas futuras y una reserva específica por ID.</p>
      */
     private static void sendGetRequests() {
-        RestTemplate rest = new RestTemplate();
-        String baseURL = "http://localhost:8080/api/reserva";
+        // Refactor Semana 1 (nombrado): variables con intención clara.
+        RestTemplate restTemplate = new RestTemplate();
+        String baseApiUrl = "http://localhost:8080/api/reserva";
 
         // Obtener todas las reservas
         System.out.println("==== REQUEST 1: GET all reservas ====");
-        ResponseEntity<Reserva[]> responseAll = rest.getForEntity(baseURL, Reserva[].class);
+        ResponseEntity<Reserva[]> responseAll = restTemplate.getForEntity(baseApiUrl, Reserva[].class);
         if (responseAll.getBody() != null)
-            for (Reserva r : responseAll.getBody()) System.out.println(r);
+            for (Reserva reserva : responseAll.getBody()) System.out.println(reserva);
 
         // Obtener reservas futuras
         System.out.println("==== REQUEST 2: GET futuras reservas ====");
-        ResponseEntity<Reserva[]> responseFuture = rest.getForEntity(baseURL + "/futuros", Reserva[].class);
+        ResponseEntity<Reserva[]> responseFuture = restTemplate.getForEntity(baseApiUrl + "/futuros", Reserva[].class);
         if (responseFuture.getBody() != null) {
-            for (Reserva r : responseFuture.getBody()) {
-                System.out.println(r);
+            for (Reserva reserva : responseFuture.getBody()) {
+                System.out.println(reserva);
             }
         }
 
         // Obtener una reserva específica por ID
         System.out.println("==== REQUEST 3: GET reserva by ID ====");
-        int id = 9;
-        ResponseEntity<Reserva> responseOne = rest.getForEntity(baseURL + "/{id}", Reserva.class, id);
+        int idReservaConsultada = 9;
+        ResponseEntity<Reserva> responseOne = restTemplate.getForEntity(baseApiUrl + "/{id}", Reserva.class, idReservaConsultada);
         System.out.println(responseOne.getBody());
     }
 
@@ -61,26 +62,27 @@ public class DemoClientReserva {
      * <p>Se configura una nueva reserva y se envía a la API para su creación.</p>
      */
     private static void sendPostRequests() {
-        RestTemplate rest = new RestTemplate();
-        String baseURL = "http://localhost:8080/api/reserva";
+        // Refactor Semana 1 (nombrado): eliminamos nombres genéricos como nuevo.
+        RestTemplate restTemplate = new RestTemplate();
+        String baseApiUrl = "http://localhost:8080/api/reserva";
 
         // Crear una nueva reserva
-        Reserva nuevo = new Reserva();
-        nuevo.setId(40);  // El id será asignado por la base de datos, si es autoincremental, ponlo a 0 o null si la base lo gestiona.
-        nuevo.setMatricula("madfv");
-        nuevo.setDniSocio("21872274A");
-        nuevo.setNumPasajeros(3);
-        nuevo.setFecha(LocalDate.parse("2025-02-01"));
+        Reserva nuevaReserva = new Reserva();
+        nuevaReserva.setId(40);  // El id será asignado por la base de datos, si es autoincremental, ponlo a 0 o null si la base lo gestiona.
+        nuevaReserva.setMatricula("madfv");
+        nuevaReserva.setDniSocio("21872274A");
+        nuevaReserva.setNumPasajeros(3);
+        nuevaReserva.setFecha(LocalDate.parse("2025-02-01"));
 
         double precioPorPasajero = 40.0;
-        double importeReserva = precioPorPasajero * nuevo.getNumPasajeros();
-        nuevo.setImporteTotal(importeReserva);  // Establecer el importe de la reserva
-        String descripcion = "Reserva para alquiler de embarcación";
-        nuevo.setDescripcionReserva(descripcion);
+        double importeReserva = precioPorPasajero * nuevaReserva.getNumPasajeros();
+        nuevaReserva.setImporteTotal(importeReserva);  // Establecer el importe de la reserva
+        String descripcionReserva = "Reserva para alquiler de embarcación";
+        nuevaReserva.setDescripcionReserva(descripcionReserva);
 
         System.out.println("==== REQUEST 4: POST crear reserva ====");
-        ResponseEntity<String> response = rest.postForEntity(baseURL, nuevo, String.class);
-        System.out.println(response.getBody());
+        ResponseEntity<String> createResponse = restTemplate.postForEntity(baseApiUrl, nuevaReserva, String.class);
+        System.out.println(createResponse.getBody());
 
         
     }
@@ -100,16 +102,17 @@ public class DemoClientReserva {
      * Realiza una solicitud PATCH para modificar la fecha de una reserva existente.
      * <p>Envía una nueva fecha para una reserva especificada por ID.</p>
      */
-    private static void sendPatchRequestFecha() {
-        RestTemplate rest = createPatchCompatibleRestTemplate();
-        String baseURL = "http://localhost:8080/api/reserva";
+    private static void sendPatchRequestForDate() {
+        // Refactor Semana 1 (nombrado): método y variables expresan la acción exacta.
+        RestTemplate restTemplate = createPatchCompatibleRestTemplate();
+        String baseApiUrl = "http://localhost:8080/api/reserva";
 
         int idReserva = 75;
         String nuevaFecha = "2029-12-12"; // Nueva fecha solicitada
 
         System.out.println("==== 5: PATCH Modificar Fecha Reserva ====");
-        ResponseEntity<String> response = rest.exchange(
-                baseURL + "/{id}/modificarFecha?nuevaFecha={nuevaFecha}",
+        ResponseEntity<String> response = restTemplate.exchange(
+            baseApiUrl + "/{id}/modificarFecha?nuevaFecha={nuevaFecha}",
                 HttpMethod.PATCH,
                 null,
                 String.class,
@@ -123,17 +126,18 @@ public class DemoClientReserva {
      * Realiza una solicitud PATCH para modificar los datos de una reserva existente.
      * <p>Envía nuevos datos, como la descripción y el número de plazas, para una reserva especificada por ID.</p>
      */
-    private static void sendPatchRequestDatos() {
-        RestTemplate rest = createPatchCompatibleRestTemplate();
-        String baseURL = "http://localhost:8080/api/reserva";
+    private static void sendPatchRequestForDetails() {
+        // Refactor Semana 1 (nombrado): método y variables evitan términos genéricos.
+        RestTemplate restTemplate = createPatchCompatibleRestTemplate();
+        String baseApiUrl = "http://localhost:8080/api/reserva";
 
         int idReserva = 9; // ID de la reserva que quieres modificar
         String nuevaDescripcion = "Nueva descripción para la reserva";
         int nuevoNumPlazas = 1; // Nuevo número de plazas
 
         System.out.println("==== 6: PATCH Modificar Datos de la Reserva ====");
-        ResponseEntity<String> response = rest.exchange(
-                baseURL + "/{id}/modificarDatos?descripcion={descripcion}&numPlazas={numPlazas}",
+        ResponseEntity<String> response = restTemplate.exchange(
+            baseApiUrl + "/{id}/modificarDatos?descripcion={descripcion}&numPlazas={numPlazas}",
                 HttpMethod.PATCH,
                 null,
                 String.class,
@@ -151,8 +155,9 @@ public class DemoClientReserva {
      * <p>Envía una solicitud para cancelar la reserva especificada por ID.</p>
      */
     private static void sendDeleteRequest() {
-        RestTemplate rest = createPatchCompatibleRestTemplate();
-        String baseURL = "http://localhost:8080/api/reserva";
+        // Refactor Semana 1 (nombrado): id explícito para evitar confusión con otros identificadores.
+        RestTemplate restTemplate = createPatchCompatibleRestTemplate();
+        String baseApiUrl = "http://localhost:8080/api/reserva";
 
 
         
@@ -161,8 +166,8 @@ public class DemoClientReserva {
         int idReserva = 76; // ID de la reserva que quieres cancelar
 
         System.out.println("==== 7: DELETE Cancelar Reserva (INVALIDO) ====");
-        ResponseEntity<String> response = rest.exchange(
-                baseURL + "/{id}",
+        ResponseEntity<String> response = restTemplate.exchange(
+            baseApiUrl + "/{id}",
                 HttpMethod.DELETE,
                 null,
                 String.class,

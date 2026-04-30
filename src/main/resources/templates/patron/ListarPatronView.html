@@ -100,10 +100,10 @@
                 </thead>
                 <tbody>
                     <tr th:each="p : ${patron}">
-                        <td th:text="${p.dni_patron}">DNI</td>
+                        <td th:text="${p.dniPatron}">DNI</td>
                         <td th:text="${p.nombre}">Nombre</td>
                         <td th:text="${p.apellido}">Apellido</td>
-                        <td th:text="${#temporals.format(p.fecha_nacimiento, 'dd/MM/yyyy')}">Fecha</td>
+                        <td th:text="${#temporals.format(p.fechaNacimiento, 'dd/MM/yyyy')}">Fecha</td>
                     </tr>
                 </tbody>
             </table>

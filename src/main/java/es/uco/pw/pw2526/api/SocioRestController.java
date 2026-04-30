@@ -41,22 +41,23 @@ public class SocioRestController
     public ResponseEntity<List<Socio>>ObtenerSociosApi()
     {
         List<Socio> socios = socioRepository.obtenerSocios();
-        ResponseEntity<List<Socio>> response = new ResponseEntity<>(socios, HttpStatus.OK);
-        return response;
+        ResponseEntity<List<Socio>> sociosResponse = new ResponseEntity<>(socios, HttpStatus.OK);
+        return sociosResponse;
     }
 
     /** GET: Obtener socio por dni */
     @GetMapping("/{dni}")
     public ResponseEntity<Socio> getStudentById(@PathVariable String dni){
-        Socio student = socioRepository.findByDni(dni);            
-        ResponseEntity<Socio> response;
-        if(student != null){
-            response = new ResponseEntity<>(student, HttpStatus.OK);
+        // Refactor de nombrado: evitamos términos no de dominio (student).
+        Socio socioEncontrado = socioRepository.findByDni(dni);
+        ResponseEntity<Socio> socioResponse;
+        if(socioEncontrado != null){
+            socioResponse = new ResponseEntity<>(socioEncontrado, HttpStatus.OK);
         }
         else{
-            response = new ResponseEntity<>(student, HttpStatus.NOT_FOUND);
+            socioResponse = new ResponseEntity<>(socioEncontrado, HttpStatus.NOT_FOUND);
         }
-        return response;
+        return socioResponse;
     }
 
     /** GET: Listado de inscripciones individuales */
@@ -91,26 +92,26 @@ public class SocioRestController
     @PostMapping(consumes = "application/json")
     public ResponseEntity<Socio> crearSocio(@RequestBody Socio socio) 
     {
-    ResponseEntity<Socio> response;
+    ResponseEntity<Socio> socioResponse;
 
     /** Verificar si ya existe un socio con el mismo DNI */
     boolean existe = socioRepository.existsByDni(socio.getDni());
     if (existe) {
         // Si ya existe, devolver error 422 (Unprocessable Entity)
-        response = new ResponseEntity<>(socio, HttpStatus.UNPROCESSABLE_ENTITY);
+        socioResponse = new ResponseEntity<>(socio, HttpStatus.UNPROCESSABLE_ENTITY);
     } else {
         // Intentar insertar el nuevo socio
-        boolean resultOk = socioRepository.addSocio(socio);
-        if (resultOk) {
+        boolean socioCreado = socioRepository.addSocio(socio);
+        if (socioCreado) {
             // Si se inserta correctamente, devolver 201 (Created)
-            response = new ResponseEntity<>(socio, HttpStatus.CREATED);
+            socioResponse = new ResponseEntity<>(socio, HttpStatus.CREATED);
         } else {
             // Si hay error interno al insertar, devolver 500
-            response = new ResponseEntity<>(socio, HttpStatus.INTERNAL_SERVER_ERROR);
+            socioResponse = new ResponseEntity<>(socio, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    return response;
+    return socioResponse;
     }
 
     /** POST: Crear un nuevo socio asociándolo a una inscripción familiar ya existente */
@@ -125,9 +126,9 @@ public class SocioRestController
         }
 
         // Intentar insertar el nuevo socio asociado al idInscripcion
-        boolean resultOk = socioRepository.addConyuge(idInscripcion, conyuge);
+        boolean conyugeCreado = socioRepository.addConyuge(idInscripcion, conyuge);
 
-        if (resultOk) {
+        if (conyugeCreado) {
             return ResponseEntity.status(HttpStatus.CREATED).body(conyuge);
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(conyuge);
@@ -174,8 +175,8 @@ public ResponseEntity<Socio> patchSocio(@PathVariable String dni, @RequestBody S
             currentSocio.setTituloPatron(requestSocio.isTituloPatron());
 
             // Guardar socio actualizado
-            boolean resultOk = socioRepository.updateSocio(currentSocio);
-            if (resultOk) {
+            boolean socioActualizado = socioRepository.updateSocio(currentSocio);
+            if (socioActualizado) {
                 response = currentSocio;
                 return ResponseEntity.ok(response);
             } else {
@@ -205,8 +206,8 @@ public ResponseEntity<Socio> patchSocio(@PathVariable String dni, @RequestBody S
         // Cambiar tipo de inscripción
         current.setTipo(requestInscripcion.getTipo());
 
-        boolean resultOk = socioRepository.updateTipoInscripcion(current.getId(), current.getTipo());
-        if (resultOk) {
+        boolean tipoActualizado = socioRepository.updateTipoInscripcion(current.getId(), current.getTipo());
+        if (tipoActualizado) {
             return ResponseEntity.ok(current);
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

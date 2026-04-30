@@ -176,8 +176,9 @@ public class AñadirAlquilerController {
         double importe = 20.0 * numPasajeros * (double) dias;
         newAlquiler.setImporteTotal(importe);
 
-        boolean ok = alquilerRepository.addAlquiler(newAlquiler);
-        if (!ok) {
+        // Refactor de nombrado: evitar booleanos ambiguos como ok.
+        boolean alquilerGuardado = alquilerRepository.addAlquiler(newAlquiler);
+        if (!alquilerGuardado) {
             mv.setViewName("alquiler/crearAlquilerViewFail.html");
             mv.addObject("error", "Error guardando el alquiler en la base de datos.");
             populateSociosYEmbarcaciones(mv);
@@ -217,9 +218,9 @@ public class AñadirAlquilerController {
             for (TipoEmbarcacion t : TipoEmbarcacion.values()) {
                 if (t == TipoEmbarcacion.NONE)
                     continue;
-                List<Embarcacion> list = embarcacionRepository.listarPorTipo(t);
-                if (list != null)
-                    embarcaciones.addAll(list);
+                List<Embarcacion> embarcacionesPorTipo = embarcacionRepository.listarPorTipo(t);
+                if (embarcacionesPorTipo != null)
+                    embarcaciones.addAll(embarcacionesPorTipo);
             }
             mv.addObject("embarcaciones", embarcaciones);
         } catch (Exception e) {

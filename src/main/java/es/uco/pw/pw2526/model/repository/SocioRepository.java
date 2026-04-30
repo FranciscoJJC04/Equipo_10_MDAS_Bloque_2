@@ -79,7 +79,7 @@ public class SocioRepository extends AbstractRepository {
             else
                 return null;
         } catch (DataAccessException exception) {
-            System.err.println("Unable to find students");
+            System.err.println("Unable to find socios. Error: " + exception.getMessage());
             exception.printStackTrace();
             return null;
         }
@@ -119,7 +119,7 @@ public class SocioRepository extends AbstractRepository {
             else
                 return null;
         } catch (DataAccessException exception) {
-            System.err.println("Unable to find students");
+            System.err.println("Unable to find socios without patron title. Error: " + exception.getMessage());
             exception.printStackTrace();
             return null;
         }
@@ -159,7 +159,7 @@ public class SocioRepository extends AbstractRepository {
             else
                 return null;
         } catch (DataAccessException exception) {
-            System.err.println("Unable to find students");
+            System.err.println("Unable to find socios with patron title. Error: " + exception.getMessage());
             exception.printStackTrace();
             return null;
         }

@@ -65,13 +65,14 @@ public class AlquilerRestController {
     @GetMapping("/futuros/{fecha}")
     public ResponseEntity<List<Alquiler>> getAlquileresFuturos(@PathVariable("fecha") String fechaTexto) {
         try {
-            LocalDate fecha = LocalDate.parse(fechaTexto);
-            List<Alquiler> result = alquilerRepository.obtenerAlquileresFuturos(fecha);
+            // Refactor de nombrado: variables con intención explícita.
+            LocalDate fechaReferencia = LocalDate.parse(fechaTexto);
+            List<Alquiler> alquileresFuturos = alquilerRepository.obtenerAlquileresFuturos(fechaReferencia);
 
-            if (result == null || result.isEmpty()) {
+            if (alquileresFuturos == null || alquileresFuturos.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(alquileresFuturos);
 
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
@@ -106,15 +107,15 @@ public class AlquilerRestController {
             @RequestParam("fin") String fin) {
 
         try {
-            LocalDate fi = LocalDate.parse(inicio);
-            LocalDate ff = LocalDate.parse(fin);
+            LocalDate fechaInicio = LocalDate.parse(inicio);
+            LocalDate fechaFin = LocalDate.parse(fin);
 
-            List<String> disponibles = alquilerRepository.listarEmbaracionesDisponiblesPorFecha(fi, ff);
+            List<String> matriculasDisponibles = alquilerRepository.listarEmbaracionesDisponiblesPorFecha(fechaInicio, fechaFin);
 
-            if (disponibles == null || disponibles.isEmpty()) {
+            if (matriculasDisponibles == null || matriculasDisponibles.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
-            return ResponseEntity.ok(disponibles);
+            return ResponseEntity.ok(matriculasDisponibles);
 
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
@@ -147,8 +148,8 @@ public class AlquilerRestController {
                         .body("El número de pasajeros debe ser mayor que 0.");
             }
 
-            boolean ok = alquilerRepository.addAlquiler(alquiler);
-            if (ok) {
+            boolean alquilerCreado = alquilerRepository.addAlquiler(alquiler);
+            if (alquilerCreado) {
                 return ResponseEntity.status(HttpStatus.CREATED)
                         .body("Alquiler creado correctamente.");
             } else {
@@ -187,9 +188,9 @@ public class AlquilerRestController {
                         .body("Solo se puede vincular socios en alquileres FUTUROS.");
             }
 
-            boolean ok = alquilerRepository.addSocioAlquiler(dniSocio, id);
+            boolean socioVinculado = alquilerRepository.addSocioAlquiler(dniSocio, id);
 
-            if (ok) {
+            if (socioVinculado) {
                 return ResponseEntity.ok("Socio vinculado correctamente.");
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -227,9 +228,9 @@ public class AlquilerRestController {
                         .body("Solo se puede desvincular socios en alquileres FUTUROS.");
             }
 
-            boolean ok = alquilerRepository.desvincularSocioNoTitular(id, dniSocio);
+            boolean socioDesvinculado = alquilerRepository.desvincularSocioNoTitular(id, dniSocio);
 
-            if (ok) {
+            if (socioDesvinculado) {
                 return ResponseEntity.ok("Socio desvinculado correctamente.");
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -264,9 +265,9 @@ public class AlquilerRestController {
                         .body("Solo se pueden cancelar alquileres FUTUROS.");
             }
 
-            boolean ok = alquilerRepository.cancelarAlquilerFuturo(id);
+            boolean alquilerCancelado = alquilerRepository.cancelarAlquilerFuturo(id);
 
-            if (ok) {
+            if (alquilerCancelado) {
                 return ResponseEntity.ok("Alquiler cancelado correctamente.");
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

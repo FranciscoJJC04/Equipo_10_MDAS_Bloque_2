@@ -119,8 +119,9 @@ public class AñadirReservaController {
         newReserva.setFecha(fecha); // Establecer la fecha
 
         // Guardar la reserva
-        boolean ok = reservaRepository.addReserva(newReserva);
-        if (!ok) {
+        // Refactor de nombrado: evitar booleano genérico.
+        boolean reservaGuardada = reservaRepository.addReserva(newReserva);
+        if (!reservaGuardada) {
             mv.setViewName("reserva/crearReservaViewFail");
             mv.addObject("error", "Error guardando la reserva en la base de datos.");
             populateSociosYEmbarcaciones(mv);

@@ -31,8 +31,8 @@ public class AlquilerRepository extends AbstractRepository
     {
         try 
         {
-            String query = sqlQueries.getProperty("insertar-alquiler");
-            if (query == null) 
+            String insertAlquilerQuery = sqlQueries.getProperty("insertar-alquiler");
+            if (insertAlquilerQuery == null) 
             {
                 System.err.println("No se encontró la query 'insertar-alquiler' en sql.properties");
                 return false;
@@ -49,7 +49,7 @@ public class AlquilerRepository extends AbstractRepository
 
        
 
-        int result = jdbcTemplate.update(query,
+        int insertedRows = jdbcTemplate.update(insertAlquilerQuery,
             alquiler.getMatricula(),
             alquiler.getNumPasajeros(),
             importe,
@@ -58,7 +58,7 @@ public class AlquilerRepository extends AbstractRepository
             alquiler.getFechaFin());
                   
 
-            return result > 0;
+            return insertedRows > 0;
 
         } 
         catch (DataAccessException e) 
@@ -71,12 +71,12 @@ public class AlquilerRepository extends AbstractRepository
     /** Cuenta alquileres que se solapan con el rango [inicio, fin] para la matrícula indicada */
     public Integer countAlquileresSolapados(String matricula, java.time.LocalDate inicio, java.time.LocalDate fin) {
         try {
-            String q = sqlQueries.getProperty("check-alquiler-range");
-            if (q == null) {
+            String checkRangeQuery = sqlQueries.getProperty("check-alquiler-range");
+            if (checkRangeQuery == null) {
                 System.err.println("No se encontró la query 'check-alquiler-range' en sql.properties");
                 return null;
             }
-            return jdbcTemplate.queryForObject(q, Integer.class, matricula, java.sql.Date.valueOf(inicio), java.sql.Date.valueOf(fin));
+            return jdbcTemplate.queryForObject(checkRangeQuery, Integer.class, matricula, java.sql.Date.valueOf(inicio), java.sql.Date.valueOf(fin));
         } catch (DataAccessException e) {
             System.err.println(" Error contando alquileres solapados: " + e.getMessage());
             return null;
@@ -88,12 +88,12 @@ public class AlquilerRepository extends AbstractRepository
      */
     public Integer obtenerPlazas(String matricula) {
         try {
-            String q = sqlQueries.getProperty("select-embarcacion-num-plazas");
-            if (q == null) {
+            String selectPlazasQuery = sqlQueries.getProperty("select-embarcacion-num-plazas");
+            if (selectPlazasQuery == null) {
                 System.err.println("No se encontró la query 'select-embarcacion-num-plazas' en sql.properties");
                 return null;
             }
-            Integer plazas = jdbcTemplate.queryForObject(q, Integer.class, matricula);
+            Integer plazas = jdbcTemplate.queryForObject(selectPlazasQuery, Integer.class, matricula);
             return plazas;
         } catch (DataAccessException e) {
             System.err.println(" Error obteniendo plazas de embarcación: " + e.getMessage());
@@ -101,14 +101,14 @@ public class AlquilerRepository extends AbstractRepository
         }
     }
 
-    public boolean addSocioAlquiler(String dniSocio, int id_alquiler) {
+    public boolean addSocioAlquiler(String dniSocio, int idAlquiler) {
     try {
         // Verificar si el socio ya está en el alquiler
-        String qExiste = sqlQueries.getProperty("existe-socio-en-alquiler");
-        if (qExiste != null) {
-            Integer existe = jdbcTemplate.queryForObject(qExiste, Integer.class, dniSocio, id_alquiler);
+        String existsSocioAlquilerQuery = sqlQueries.getProperty("existe-socio-en-alquiler");
+        if (existsSocioAlquilerQuery != null) {
+            Integer existe = jdbcTemplate.queryForObject(existsSocioAlquilerQuery, Integer.class, dniSocio, idAlquiler);
             if (existe != null && existe > 0) {
-                System.err.println(" El socio ya está asociado al alquiler " + id_alquiler);
+                System.err.println(" El socio ya está asociado al alquiler " + idAlquiler);
                 return false;
             }
         }
@@ -120,8 +120,8 @@ public class AlquilerRepository extends AbstractRepository
             return false;
         }
 
-        int result = jdbcTemplate.update(queryInsert, dniSocio, id_alquiler);
-        return result > 0;
+        int insertedRows = jdbcTemplate.update(queryInsert, dniSocio, idAlquiler);
+        return insertedRows > 0;
 
     } catch (DataAccessException e) {
         System.err.println(" Error al añadir socio al alquiler: " + e.getMessage());
@@ -131,11 +131,11 @@ public class AlquilerRepository extends AbstractRepository
 
 
     /** Devuelve el número de plazas de la embarcación asociada al alquiler (o null si no se puede obtener) */
-    public Integer getPlazasByAlquiler(int id_alquiler) {
+    public Integer getPlazasByAlquiler(int idAlquiler) {
         try {
-            String qPlazas = sqlQueries.getProperty("select-embarcacion-num-plazas-by-alquiler");
-            if (qPlazas == null) return null;
-            return jdbcTemplate.queryForObject(qPlazas, Integer.class, id_alquiler);
+            String selectPlazasByAlquilerQuery = sqlQueries.getProperty("select-embarcacion-num-plazas-by-alquiler");
+            if (selectPlazasByAlquilerQuery == null) return null;
+            return jdbcTemplate.queryForObject(selectPlazasByAlquilerQuery, Integer.class, idAlquiler);
         } catch (DataAccessException ex) {
             System.err.println("Error obteniendo plazas by alquiler: " + ex.getMessage());
             return null;
@@ -143,11 +143,11 @@ public class AlquilerRepository extends AbstractRepository
     }
 
     /** Cuenta los socios ya asociados al alquiler */
-    public Integer countSociosEnAlquiler(int id_alquiler) {
+    public Integer countSociosEnAlquiler(int idAlquiler) {
         try {
-            String qCount = sqlQueries.getProperty("count-socios-por-alquiler");
-            if (qCount == null) return null;
-            return jdbcTemplate.queryForObject(qCount, Integer.class, id_alquiler);
+            String countSociosQuery = sqlQueries.getProperty("count-socios-por-alquiler");
+            if (countSociosQuery == null) return null;
+            return jdbcTemplate.queryForObject(countSociosQuery, Integer.class, idAlquiler);
         } catch (DataAccessException ex) {
             System.err.println("Error contando socios por alquiler: " + ex.getMessage());
             return null;
@@ -155,14 +155,14 @@ public class AlquilerRepository extends AbstractRepository
     }
 
     /** Obtiene el valor num_pasajeros del alquiler (o null en caso de error) */
-    public Integer getNumPasajerosByAlquiler(int id_alquiler) {
+    public Integer getNumPasajerosByAlquiler(int idAlquiler) {
         try {
-            String q = sqlQueries.getProperty("select-num-pasajeros-by-alquiler");
-            if (q == null) {
+            String selectNumPasajerosQuery = sqlQueries.getProperty("select-num-pasajeros-by-alquiler");
+            if (selectNumPasajerosQuery == null) {
                 System.err.println(" No se encontró la query 'select-num-pasajeros-by-alquiler' en sql.properties");
                 return null;
             }
-            return jdbcTemplate.queryForObject(q, Integer.class, id_alquiler);
+            return jdbcTemplate.queryForObject(selectNumPasajerosQuery, Integer.class, idAlquiler);
         } catch (DataAccessException ex) {
             System.err.println("Error obteniendo num_pasajeros por alquiler: " + ex.getMessage());
             return null;
@@ -170,29 +170,29 @@ public class AlquilerRepository extends AbstractRepository
     }
 
     /** Obtiene la lista de socios asociados a un alquiler (detalles completos de socio). */
-    public List<Socio> obtenerSociosPorAlquiler(int id_alquiler) {
+    public List<Socio> obtenerSociosPorAlquiler(int idAlquiler) {
         try {
-            String q = sqlQueries.getProperty("listar-socios-por-alquiler");
-            if (q == null) {
+            String listarSociosPorAlquilerQuery = sqlQueries.getProperty("listar-socios-por-alquiler");
+            if (listarSociosPorAlquilerQuery == null) {
                 System.err.println(" No se encontró la query 'listar-socios-por-alquiler' en sql.properties");
                 return null;
             }
-            List<Socio> result = jdbcTemplate.query(q, new org.springframework.jdbc.core.RowMapper<Socio>() {
+            List<Socio> sociosPorAlquiler = jdbcTemplate.query(listarSociosPorAlquilerQuery, new org.springframework.jdbc.core.RowMapper<Socio>() {
                 public Socio mapRow(java.sql.ResultSet rs, int rowNum) throws java.sql.SQLException {
-                    Socio s = new Socio();
-                    s.setDni(rs.getString("dni"));
-                    s.setNombre(rs.getString("nombre"));
-                    s.setApellidos(rs.getString("apellidos"));
+                    Socio socio = new Socio();
+                    socio.setDni(rs.getString("dni"));
+                    socio.setNombre(rs.getString("nombre"));
+                    socio.setApellidos(rs.getString("apellidos"));
                     java.sql.Date fechaNacimiento = rs.getDate("fecha_nacimiento");
-                    if (fechaNacimiento != null) s.setFechaNacimiento(fechaNacimiento.toLocalDate());
-                    s.setDireccion(rs.getString("direccion"));
-                    s.setTituloPatron(rs.getBoolean("titulo_patron"));
+                    if (fechaNacimiento != null) socio.setFechaNacimiento(fechaNacimiento.toLocalDate());
+                    socio.setDireccion(rs.getString("direccion"));
+                    socio.setTituloPatron(rs.getBoolean("titulo_patron"));
                     java.sql.Date fechaIns = rs.getDate("fecha_inscripcion");
-                    if (fechaIns != null) s.setFechaInscripcion(fechaIns.toLocalDate());
-                    return s;
+                    if (fechaIns != null) socio.setFechaInscripcion(fechaIns.toLocalDate());
+                    return socio;
                 }
-            }, id_alquiler);
-            return result;
+            }, idAlquiler);
+            return sociosPorAlquiler;
         } catch (org.springframework.dao.DataAccessException ex) {
             System.err.println("Error obteniendo socios por alquiler: " + ex.getMessage());
             return null;
@@ -205,42 +205,42 @@ public class AlquilerRepository extends AbstractRepository
         try{
             String query = sqlQueries.getProperty("listar-alquileres");
             if(query != null){
-                List<Alquiler> result = jdbcTemplate.query(query, new RowMapper<Alquiler>(){
+                List<Alquiler> alquileres = jdbcTemplate.query(query, new RowMapper<Alquiler>(){
                 public Alquiler mapRow(ResultSet rs, int rowNumber) throws SQLException{
-                    Alquiler a = new Alquiler();
+                    Alquiler alquiler = new Alquiler();
                     // Mapear el id del alquiler y otros campos relevantes
                     try {
                         // id_alquiler en la BBDD
-                        int id = rs.getInt("id_alquiler");
-                        a.setIdAlquiler(id);
+                        int idAlquiler = rs.getInt("id_alquiler");
+                        alquiler.setIdAlquiler(idAlquiler);
                     } catch (SQLException ex) {
                         // si no existe la columna, no romper: dejar id por defecto (0)
                     }
-                    a.setDniSocio(rs.getString("dni_socio"));
-                    a.setMatricula(rs.getString("matricula"));
+                    alquiler.setDniSocio(rs.getString("dni_socio"));
+                    alquiler.setMatricula(rs.getString("matricula"));
                     // mapear num_pasajeros y importe_total si existen
                     try {
-                        a.setNumPasajeros(rs.getInt("num_pasajeros"));
+                        alquiler.setNumPasajeros(rs.getInt("num_pasajeros"));
                     } catch (SQLException ex) {
                         // ignorar si la columna no existe
                     }
                     try {
-                        a.setImporteTotal(rs.getDouble("importe_total"));
+                        alquiler.setImporteTotal(rs.getDouble("importe_total"));
                     } catch (SQLException ex) {
                         // ignorar si la columna no existe
                     }
-                    java.sql.Date fi = rs.getDate("fecha_inicio");
-                    java.sql.Date ff = rs.getDate("fecha_fin");
-                    if (fi != null) {
-                        a.setFechaInicio(fi.toLocalDate());
+                    java.sql.Date fechaInicio = rs.getDate("fecha_inicio");
+                    java.sql.Date fechaFin = rs.getDate("fecha_fin");
+                    if (fechaInicio != null) {
+                        alquiler.setFechaInicio(fechaInicio.toLocalDate());
                     }
-                    if (ff != null) {
-                        a.setFechaFin(ff.toLocalDate());
+                    if (fechaFin != null) {
+                        alquiler.setFechaFin(fechaFin.toLocalDate());
                     }
-                    return a;
+                    return alquiler;
                 }
                 });
-                return result;
+                return alquileres;
             }
             else
                 return null;
@@ -257,12 +257,12 @@ public class AlquilerRepository extends AbstractRepository
  */
 public List<String> listarEmbaracionesDisponiblesPorFecha(java.time.LocalDate inicio, java.time.LocalDate fin) {
     try {
-        String q = sqlQueries.getProperty("listar-embarcaciones-disponibles-por-fecha");
-        if (q == null) {
+        String listarDisponiblesQuery = sqlQueries.getProperty("listar-embarcaciones-disponibles-por-fecha");
+        if (listarDisponiblesQuery == null) {
             System.err.println(" No se encontró la query 'listar-embarcaciones-disponibles-por-fecha' en sql.properties");
             return null;
         }
-        return jdbcTemplate.queryForList(q, String.class, java.sql.Date.valueOf(inicio), java.sql.Date.valueOf(fin));
+        return jdbcTemplate.queryForList(listarDisponiblesQuery, String.class, java.sql.Date.valueOf(inicio), java.sql.Date.valueOf(fin));
     } catch (org.springframework.dao.DataAccessException e) {
         System.err.println(" Error listando matriculas disponibles: " + e.getMessage());
         return null;
@@ -270,32 +270,32 @@ public List<String> listarEmbaracionesDisponiblesPorFecha(java.time.LocalDate in
 }
 
 //P2 añadido
-public Alquiler obtenerAlquilerPorId(int id_alquiler) {
+public Alquiler obtenerAlquilerPorId(int idAlquiler) {
     try {
-        String q = sqlQueries.getProperty("select-alquiler-by-id");
-        if (q == null) {
+        String selectAlquilerByIdQuery = sqlQueries.getProperty("select-alquiler-by-id");
+        if (selectAlquilerByIdQuery == null) {
             System.err.println(" No se encontró la query 'select-alquiler-by-id' en sql.properties");
             return null;
         }
 
-        return jdbcTemplate.queryForObject(q, new RowMapper<Alquiler>() {
+        return jdbcTemplate.queryForObject(selectAlquilerByIdQuery, new RowMapper<Alquiler>() {
             @Override
             public Alquiler mapRow(ResultSet rs, int rowNum) throws SQLException {
-                Alquiler a = new Alquiler();
-                a.setIdAlquiler(rs.getInt("id_alquiler"));
-                a.setDniSocio(rs.getString("dni_socio"));
-                a.setMatricula(rs.getString("matricula"));
-                a.setNumPasajeros(rs.getInt("num_pasajeros"));
-                a.setImporteTotal(rs.getDouble("importe_total"));
+                Alquiler alquiler = new Alquiler();
+                alquiler.setIdAlquiler(rs.getInt("id_alquiler"));
+                alquiler.setDniSocio(rs.getString("dni_socio"));
+                alquiler.setMatricula(rs.getString("matricula"));
+                alquiler.setNumPasajeros(rs.getInt("num_pasajeros"));
+                alquiler.setImporteTotal(rs.getDouble("importe_total"));
 
-                java.sql.Date fi = rs.getDate("fecha_inicio");
-                java.sql.Date ff = rs.getDate("fecha_fin");
-                if (fi != null) a.setFechaInicio(fi.toLocalDate());
-                if (ff != null) a.setFechaFin(ff.toLocalDate());
+                java.sql.Date fechaInicio = rs.getDate("fecha_inicio");
+                java.sql.Date fechaFin = rs.getDate("fecha_fin");
+                if (fechaInicio != null) alquiler.setFechaInicio(fechaInicio.toLocalDate());
+                if (fechaFin != null) alquiler.setFechaFin(fechaFin.toLocalDate());
 
-                return a;
+                return alquiler;
             }
-        }, id_alquiler);
+        }, idAlquiler);
 
     } catch (DataAccessException e) {
         System.err.println(" Error obteniendo alquiler por ID: " + e.getMessage());
@@ -304,28 +304,28 @@ public Alquiler obtenerAlquilerPorId(int id_alquiler) {
 }
 public List<Alquiler> obtenerAlquileresFuturos(java.time.LocalDate fechaReferencia) {
     try {
-        String q = sqlQueries.getProperty("listar-alquileres-futuros");
-        if (q == null) {
+        String listarFuturosQuery = sqlQueries.getProperty("listar-alquileres-futuros");
+        if (listarFuturosQuery == null) {
             System.err.println(" No se encontró la query 'listar-alquileres-futuros' en sql.properties");
             return null;
         }
 
-        return jdbcTemplate.query(q, new RowMapper<Alquiler>() {
+        return jdbcTemplate.query(listarFuturosQuery, new RowMapper<Alquiler>() {
             @Override
             public Alquiler mapRow(ResultSet rs, int rowNum) throws SQLException {
-                Alquiler a = new Alquiler();
-                a.setIdAlquiler(rs.getInt("id_alquiler"));
-                a.setDniSocio(rs.getString("dni_socio"));
-                a.setMatricula(rs.getString("matricula"));
-                a.setNumPasajeros(rs.getInt("num_pasajeros"));
-                a.setImporteTotal(rs.getDouble("importe_total"));
+                Alquiler alquiler = new Alquiler();
+                alquiler.setIdAlquiler(rs.getInt("id_alquiler"));
+                alquiler.setDniSocio(rs.getString("dni_socio"));
+                alquiler.setMatricula(rs.getString("matricula"));
+                alquiler.setNumPasajeros(rs.getInt("num_pasajeros"));
+                alquiler.setImporteTotal(rs.getDouble("importe_total"));
 
-                java.sql.Date fi = rs.getDate("fecha_inicio");
-                java.sql.Date ff = rs.getDate("fecha_fin");
-                if (fi != null) a.setFechaInicio(fi.toLocalDate());
-                if (ff != null) a.setFechaFin(ff.toLocalDate());
+                java.sql.Date fechaInicio = rs.getDate("fecha_inicio");
+                java.sql.Date fechaFin = rs.getDate("fecha_fin");
+                if (fechaInicio != null) alquiler.setFechaInicio(fechaInicio.toLocalDate());
+                if (fechaFin != null) alquiler.setFechaFin(fechaFin.toLocalDate());
 
-                return a;
+                return alquiler;
             }
         }, java.sql.Date.valueOf(fechaReferencia));
 
@@ -338,15 +338,15 @@ public List<Alquiler> obtenerAlquileresFuturos(java.time.LocalDate fechaReferenc
 //P2 semana 2
 public boolean vincularSocioNoTitular(int idAlquiler, String dniSocio) {
     try {
-        String query = sqlQueries.getProperty("insertar-socio-alquiler");
-        if (query == null) {
+        String insertSocioAlquilerQuery = sqlQueries.getProperty("insertar-socio-alquiler");
+        if (insertSocioAlquilerQuery == null) {
             System.err.println("No existe la query 'insertar-socio-alquiler'");
             return false;
         }
 
         // insert into socio_alquiler (dni_socio, id_alquiler)
-        int result = jdbcTemplate.update(query, dniSocio, idAlquiler);
-        return result > 0;
+        int insertedRows = jdbcTemplate.update(insertSocioAlquilerQuery, dniSocio, idAlquiler);
+        return insertedRows > 0;
 
     } catch (DataAccessException e) {
         System.err.println("Error vinculando socio: " + e.getMessage());
@@ -356,15 +356,15 @@ public boolean vincularSocioNoTitular(int idAlquiler, String dniSocio) {
 
 public boolean desvincularSocioNoTitular(int idAlquiler, String dniSocio) {
     try {
-        String query = sqlQueries.getProperty("eliminar-socio-alquiler");
-        if (query == null) {
+        String deleteSocioAlquilerQuery = sqlQueries.getProperty("eliminar-socio-alquiler");
+        if (deleteSocioAlquilerQuery == null) {
             System.err.println("No existe la query 'eliminar-socio-alquiler'");
             return false;
         }
 
         // delete from socio_alquiler where dni_socio = ? and id_alquiler = ?
-        int result = jdbcTemplate.update(query, dniSocio, idAlquiler);
-        return result > 0;
+        int deletedRows = jdbcTemplate.update(deleteSocioAlquilerQuery, dniSocio, idAlquiler);
+        return deletedRows > 0;
 
     } catch (DataAccessException e) {
         System.err.println("Error desvinculando socio: " + e.getMessage());
@@ -374,15 +374,15 @@ public boolean desvincularSocioNoTitular(int idAlquiler, String dniSocio) {
 
 public boolean cancelarAlquilerFuturo(int idAlquiler) {
     try {
-        String query = sqlQueries.getProperty("eliminar-alquiler");
-        if (query == null) {
+        String deleteAlquilerQuery = sqlQueries.getProperty("eliminar-alquiler");
+        if (deleteAlquilerQuery == null) {
             System.err.println("No existe la query 'eliminar-alquiler'");
             return false;
         }
 
         // delete from alquiler where id_alquiler = ?
-        int result = jdbcTemplate.update(query, idAlquiler);
-        return result > 0;
+        int deletedRows = jdbcTemplate.update(deleteAlquilerQuery, idAlquiler);
+        return deletedRows > 0;
 
     } catch (DataAccessException e) {
         System.err.println("Error cancelando alquiler: " + e.getMessage());

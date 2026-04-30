@@ -53,13 +53,14 @@ public class ReservaRestController {
     @GetMapping("/futuros")
     public ResponseEntity<List<Reserva>> getReservasFuturas() {
         try {
-            LocalDate fecha = LocalDate.now(); // Obtiene la fecha actual
-            List<Reserva> result = reservaRepository.obtenerReservasFuturas(fecha);
+            // Refactor de nombrado: nombres consistentes con el dominio.
+            LocalDate fechaReferencia = LocalDate.now();
+            List<Reserva> reservasFuturas = reservaRepository.obtenerReservasFuturas(fechaReferencia);
 
-            if (result == null || result.isEmpty()) {
+            if (reservasFuturas == null || reservasFuturas.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(reservasFuturas);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
@@ -104,8 +105,8 @@ public class ReservaRestController {
             }
 
             // Creación de la reserva
-            boolean ok = reservaRepository.addReserva(reserva);
-            if (ok) {
+            boolean reservaCreada = reservaRepository.addReserva(reserva);
+            if (reservaCreada) {
                 return ResponseEntity.status(HttpStatus.CREATED)
                         .body("Reserva creada correctamente.");
             } else {
@@ -147,8 +148,8 @@ public class ReservaRestController {
             // Verificar disponibilidad de la embarcación
             List<Reserva> reservasFuturas = reservaRepository.obtenerReservasFuturas(nuevaFecha);
             boolean isDisponible = true;
-            for (Reserva r : reservasFuturas) {
-                if (r.getMatricula().equals(reserva.getMatricula())) {
+            for (Reserva reservaFutura : reservasFuturas) {
+                if (reservaFutura.getMatricula().equals(reserva.getMatricula())) {
                     isDisponible = false;
                     break;
                 }
@@ -252,8 +253,8 @@ public class ReservaRestController {
             }
 
             // Llamar al repositorio para cancelar la reserva
-            boolean ok = reservaRepository.cancelarReservaFutura(id);
-            if (ok) {
+            boolean reservaCancelada = reservaRepository.cancelarReservaFutura(id);
+            if (reservaCancelada) {
                 return ResponseEntity.ok("Reserva cancelada correctamente.");
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

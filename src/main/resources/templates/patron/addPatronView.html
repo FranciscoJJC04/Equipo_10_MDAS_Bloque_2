@@ -96,7 +96,7 @@
         <h1>Nuevo Patrón</h1>
         <form method="POST" th:action="@{/addPatron}" th:object="${newPatron}">
             <label for="dni">DNI:</label>
-            <input type="text" id="dni" th:field="*{dni_patron}" required />
+            <input type="text" id="dni" th:field="*{dniPatron}" required />
 
             <label for="nombre">Nombre:</label>
             <input type="text" id="nombre" th:field="*{nombre}" required />
@@ -105,7 +105,7 @@
             <input type="text" id="apellidos" th:field="*{apellido}" required />
 
             <label for="fechaNacimiento">Fecha de Nacimiento:</label>
-            <input type="date" id="fechaNacimiento" th:field="*{fecha_nacimiento}" required />
+            <input type="date" id="fechaNacimiento" th:field="*{fechaNacimiento}" required />
 
             <input type="submit" value="Guardar"><br>
         </form>

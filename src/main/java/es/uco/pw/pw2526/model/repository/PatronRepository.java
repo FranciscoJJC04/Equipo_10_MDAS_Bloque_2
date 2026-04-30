@@ -46,25 +46,25 @@ public class PatronRepository extends AbstractRepository {
     public boolean addPatron(Patron patron) {
         try {
             // Validación de entrada
-            if (patron == null || patron.getDni_patron() == null || patron.getDni_patron().isBlank()) {
+            if (patron == null || patron.getDniPatron() == null || patron.getDniPatron().isBlank()) {
                 return false;
             }
 
             // Comprobar existencia del patrón
-            if (existsByDni(patron.getDni_patron())) {
-                System.err.println("Error: El patrón con DNI " + patron.getDni_patron() + " ya está registrado.");
+            if (existsByDni(patron.getDniPatron())) {
+                System.err.println("Error: El patrón con DNI " + patron.getDniPatron() + " ya está registrado.");
                 return false; // El patrón ya existe
             }
 
             // Ejecutar la consulta SQL para insertar el patrón
             String query = sqlQueries.getProperty("insertar-patron");
             if (query != null) {
-                int result = jdbcTemplate.update(query,
-                        patron.getDni_patron(),
+                int insertedRows = jdbcTemplate.update(query,
+                        patron.getDniPatron(),
                         patron.getNombre(),
                         patron.getApellido(),
-                        patron.getFecha_nacimiento());
-                return result > 0; // Verificar si se insertó correctamente
+                        patron.getFechaNacimiento());
+                return insertedRows > 0;
             } else {
                 return false;
             }
@@ -117,7 +117,7 @@ public class PatronRepository extends AbstractRepository {
             // Consultar la base de datos para obtener la lista de patrones
             String query = sqlQueries.getProperty("listar-patrones");
             if (query != null) {
-                List<Patron> result = jdbcTemplate.query(query, new RowMapper<Patron>() {
+                List<Patron> patrones = jdbcTemplate.query(query, new RowMapper<Patron>() {
                     public Patron mapRow(ResultSet rs, int rowNumber) throws SQLException {
                         // Mapear los resultados de la consulta a objetos Patron
                         return new Patron(
@@ -127,7 +127,7 @@ public class PatronRepository extends AbstractRepository {
                                 rs.getDate("fecha_nacimiento").toLocalDate());
                     }
                 });
-                return result;
+                return patrones;
             } else {
                 return null;
             }
@@ -152,25 +152,25 @@ public class PatronRepository extends AbstractRepository {
     public boolean updatePatron(Patron patron) {
         try {
             // Validar que el patrón no sea nulo y que el DNI sea válido
-            if (patron == null || patron.getDni_patron() == null || patron.getDni_patron().isBlank()) {
+            if (patron == null || patron.getDniPatron() == null || patron.getDniPatron().isBlank()) {
                 return false;
             }
 
             // Verificar existencia del patrón antes de actualizar
-            if (!existsByDni(patron.getDni_patron())) {
-                System.err.println("No existe el patrón con DNI " + patron.getDni_patron());
+            if (!existsByDni(patron.getDniPatron())) {
+                System.err.println("No existe el patrón con DNI " + patron.getDniPatron());
                 return false; // No existe el patrón
             }
 
             // Ejecutar la consulta SQL para actualizar los datos del patrón
             String query = sqlQueries.getProperty("actualizar-patron");
             if (query != null) {
-                int result = jdbcTemplate.update(query,
+                int updatedRows = jdbcTemplate.update(query,
                         patron.getNombre(),
                         patron.getApellido(),
-                        patron.getFecha_nacimiento(),
-                        patron.getDni_patron());
-                return result > 0; // Verificar si la actualización fue exitosa
+                        patron.getFechaNacimiento(),
+                        patron.getDniPatron());
+                return updatedRows > 0;
             } else {
                 System.err.println("No se encontró la query 'actualizar-patron' en sql.properties");
                 return false;
@@ -217,8 +217,8 @@ public class PatronRepository extends AbstractRepository {
         try {
             String query = sqlQueries.getProperty("delete-patron");
             if (query != null) {
-                int result = jdbcTemplate.update(query, dni);
-                return result > 0;
+                int deletedRows = jdbcTemplate.update(query, dni);
+                return deletedRows > 0;
             }
             return false;
         } catch (DataAccessException ex) {
@@ -251,15 +251,15 @@ public class PatronRepository extends AbstractRepository {
             List<Patron> patrones = jdbcTemplate.query(query, new RowMapper<Patron>() {
                 @Override
                 public Patron mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    Patron p = new Patron();
-                    p.setDni_patron(rs.getString("dni_patron"));
-                    p.setNombre(rs.getString("nombre"));
-                    p.setApellido(rs.getString("apellido"));
+                    Patron patronEncontrado = new Patron();
+                    patronEncontrado.setDniPatron(rs.getString("dni_patron"));
+                    patronEncontrado.setNombre(rs.getString("nombre"));
+                    patronEncontrado.setApellido(rs.getString("apellido"));
                     java.sql.Date fechaNacimiento = rs.getDate("fecha_nacimiento");
                     if (fechaNacimiento != null) {
-                        p.setFecha_nacimiento(fechaNacimiento.toLocalDate());
+                        patronEncontrado.setFechaNacimiento(fechaNacimiento.toLocalDate());
                     }
-                    return p;
+                    return patronEncontrado;
                 }
             }, dni);
 

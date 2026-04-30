@@ -38,7 +38,7 @@ public class InsertarPatronController
     public ModelAndView addPatron(@ModelAttribute Patron newPatron) {
 
         // Comprobación previa por DNI: si ya existe, no intentamos insertar.
-        if (newPatron == null || newPatron.getDni_patron() == null || newPatron.getDni_patron().isBlank()) {
+        if (newPatron == null || newPatron.getDniPatron() == null || newPatron.getDniPatron().isBlank()) {
             // Mantener la misma lógica: delegar en addPatron (que también valida),
             // pero aquí evitamos llamadas innecesarias al repositorio cuando el DNI es inválido.
             boolean success = patronRepository.addPatron(newPatron);
@@ -46,7 +46,7 @@ public class InsertarPatronController
         }
 
         // Si el repositorio indica que ya existe un patrón con ese DNI, fallamos sin insertar.
-        if (patronRepository.existsByDni(newPatron.getDni_patron())) {
+        if (patronRepository.existsByDni(newPatron.getDniPatron())) {
             return buildResponse(false, newPatron);
         }
 

@@ -100,7 +100,7 @@
 
         <form action="/updatePatron" method="post" th:object="${patron}">
             <label>DNI:</label>
-            <input type="text" th:field="*{dni_patron}" readonly />
+            <input type="text" th:field="*{dniPatron}" readonly />
 
             <label>Nombre:</label>
             <input type="text" th:field="*{nombre}" required />
@@ -109,7 +109,7 @@
             <input type="text" th:field="*{apellido}" required />
 
             <label>Fecha de Nacimiento:</label>
-            <input type="date" th:field="*{fecha_nacimiento}" required />
+            <input type="date" th:field="*{fechaNacimiento}" required />
 
             <button type="submit">Actualizar</button>
             <a href="/" class="btn-volver">Volver al inicio</a>

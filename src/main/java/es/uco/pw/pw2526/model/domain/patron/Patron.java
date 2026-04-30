@@ -8,39 +8,39 @@ import java.time.LocalDate;
  * <p>Incluye datos básicos de identificación y fecha de nacimiento.</p>
  */
 public class Patron {
-    private String dni_patron;
+    private String dniPatron;
     private String nombre;
     private String apellido;
-    private LocalDate fecha_nacimiento;
+    private LocalDate fechaNacimiento;
 
     /**
      * Constructor por defecto. Inicializa campos con valores por defecto.
      */
     public Patron() {
-        this.dni_patron = "";
+        this.dniPatron = "";
         this.nombre = "";
         this.apellido = "";
-        this.fecha_nacimiento = LocalDate.now();
+        this.fechaNacimiento = LocalDate.now();
     }
 
     /**
      * Constructor completo.
      */
-    public Patron(String dni_patron, String nombre, String apellido, LocalDate fecha_nacimiento) {
-        this.dni_patron = dni_patron;
+    public Patron(String dniPatron, String nombre, String apellido, LocalDate fechaNacimiento) {
+        this.dniPatron = dniPatron;
         this.nombre = nombre;
         this.apellido = apellido;
-        this.fecha_nacimiento = fecha_nacimiento;
+        this.fechaNacimiento = fechaNacimiento;
     }
 
     /** Devuelve el identificador nacional del patrón. */
-    public String getDni_patron() {
-        return dni_patron;
+    public String getDniPatron() {
+        return dniPatron;
     }
 
     /** Establece el identificador nacional del patrón. */
-    public void setDni_patron(String dni_patron) {
-        this.dni_patron = dni_patron;
+    public void setDniPatron(String dniPatron) {
+        this.dniPatron = dniPatron;
     }
 
     /** Devuelve el nombre. */
@@ -64,19 +64,19 @@ public class Patron {
     }
 
     /** Devuelve la fecha de nacimiento. */
-    public LocalDate getFecha_nacimiento() {
-        return fecha_nacimiento;
+    public LocalDate getFechaNacimiento() {
+        return fechaNacimiento;
     }
 
     /** Establece la fecha de nacimiento. */
-    public void setFecha_nacimiento(LocalDate fecha_nacimiento) {
-        this.fecha_nacimiento = fecha_nacimiento;
+    public void setFechaNacimiento(LocalDate fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
     }
 
     @Override
     public String toString() {
-        return "Patron [dni_patron=" + dni_patron + ", nombre=" + nombre + ", apellido=" + apellido
-                + ", fecha_nacimiento=" + fecha_nacimiento + "]";
+        return "Patron [dniPatron=" + dniPatron + ", nombre=" + nombre + ", apellido=" + apellido
+                + ", fechaNacimiento=" + fechaNacimiento + "]";
     }
 
 }

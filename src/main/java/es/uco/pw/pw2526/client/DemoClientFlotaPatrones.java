@@ -139,7 +139,7 @@ public class DemoClientFlotaPatrones {
         Patron updatedPatron = new Patron();
         updatedPatron.setNombre("Francisco");
         updatedPatron.setApellido("Franco");
-        updatedPatron.setFecha_nacimiento(LocalDate.parse("1980-01-15"));
+        updatedPatron.setFechaNacimiento(LocalDate.parse("1980-01-15"));
 
         try {
             // La URL y el método PATCH para patrón

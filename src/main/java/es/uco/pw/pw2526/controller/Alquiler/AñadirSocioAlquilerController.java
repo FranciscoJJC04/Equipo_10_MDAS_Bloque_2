@@ -103,9 +103,10 @@ public class AñadirSocioAlquilerController {
             return mv;
         }
 
-        boolean ok = alquilerRepository.addSocioAlquiler(dniSocio, idAlquiler);
+        // Refactor de nombrado: boolean descriptivo de resultado.
+        boolean socioAnadidoAlAlquiler = alquilerRepository.addSocioAlquiler(dniSocio, idAlquiler);
 
-        if (ok) {
+        if (socioAnadidoAlAlquiler) {
             ModelAndView mv = new ModelAndView("alquiler/addSociosAlquilerViewSuccess");
             mv.addObject("success", "Socio añadido correctamente al alquiler.");
             return mv;

@@ -105,8 +105,9 @@ public class FlotaPatronRestController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El número de plazas debe ser mayor que 0.");
             }
 
-            boolean success = embarcacionRepository.addEmbarcacion(embarcacion);
-            if (success) {
+            // Refactor de nombrado: booleanos con significado explícito.
+            boolean embarcacionCreada = embarcacionRepository.addEmbarcacion(embarcacion);
+            if (embarcacionCreada) {
                 return ResponseEntity.status(HttpStatus.CREATED).body("Embarcación creada con éxito.");
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear la embarcación.");
@@ -125,7 +126,7 @@ public class FlotaPatronRestController {
     @PostMapping(path = "/patrones", consumes = "application/json")
     public ResponseEntity<String> createPatron(@RequestBody Patron patron) {
         try {
-            if (patron.getDni_patron() == null || patron.getDni_patron().isEmpty()) {
+            if (patron.getDniPatron() == null || patron.getDniPatron().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El DNI del patrón es obligatorio.");
             }
             if (patron.getNombre() == null || patron.getNombre().isEmpty()) {
@@ -134,13 +135,13 @@ public class FlotaPatronRestController {
             if (patron.getApellido() == null || patron.getApellido().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El apellido del patrón es obligatorio.");
             }
-            if (patron.getFecha_nacimiento() == null) {
+            if (patron.getFechaNacimiento() == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("La fecha de nacimiento del patrón es obligatoria.");
             }
 
-            boolean success = patronRepository.addPatron(patron);
-            if (success) {
+            boolean patronCreado = patronRepository.addPatron(patron);
+            if (patronCreado) {
                 return ResponseEntity.status(HttpStatus.CREATED).body("Patrón creado con éxito.");
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear el patrón.");
@@ -182,8 +183,8 @@ public class FlotaPatronRestController {
                 }
 
                 // Guardar embarcación actualizada
-                boolean resultOk = embarcacionRepository.updateEmbarcacion(currentEmbarcacion);
-                if (resultOk) {
+                boolean embarcacionActualizada = embarcacionRepository.updateEmbarcacion(currentEmbarcacion);
+                if (embarcacionActualizada) {
                     return ResponseEntity.ok(currentEmbarcacion);
                 } else {
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(currentEmbarcacion);
@@ -214,7 +215,7 @@ public class FlotaPatronRestController {
             if (currentPatron != null) {
 
                 // Aseguramos que el DNI no se cambia
-                requestPatron.setDni_patron(currentPatron.getDni_patron());
+                requestPatron.setDniPatron(currentPatron.getDniPatron());
 
                 // Actualizar solo los campos no nulos
                 if (requestPatron.getNombre() != null) {
@@ -223,13 +224,13 @@ public class FlotaPatronRestController {
                 if (requestPatron.getApellido() != null) {
                     currentPatron.setApellido(requestPatron.getApellido());
                 }
-                if (requestPatron.getFecha_nacimiento() != null) {
-                    currentPatron.setFecha_nacimiento(requestPatron.getFecha_nacimiento());
+                if (requestPatron.getFechaNacimiento() != null) {
+                    currentPatron.setFechaNacimiento(requestPatron.getFechaNacimiento());
                 }
 
                 // Guardar patrón actualizado
-                boolean resultOk = patronRepository.updatePatron(currentPatron);
-                if (resultOk) {
+                boolean patronActualizado = patronRepository.updatePatron(currentPatron);
+                if (patronActualizado) {
                     return ResponseEntity.ok(currentPatron);
                 } else {
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(requestPatron);
@@ -339,8 +340,8 @@ public class FlotaPatronRestController {
                     .body("La embarcación está vinculada a un alquiler o reserva.");
         }
 
-        boolean success = embarcacionRepository.deleteEmbarcacion(matricula);
-        if (success) {
+        boolean embarcacionEliminada = embarcacionRepository.deleteEmbarcacion(matricula);
+        if (embarcacionEliminada) {
             return ResponseEntity.ok("Embarcación eliminada con éxito.");
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar la embarcación.");
@@ -359,8 +360,8 @@ public class FlotaPatronRestController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El patrón está vinculado a una embarcación.");
         }
 
-        boolean success = patronRepository.deletePatron(dni);
-        if (success) {
+        boolean patronEliminado = patronRepository.deletePatron(dni);
+        if (patronEliminado) {
             return ResponseEntity.ok("Patrón eliminado con éxito.");
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar el patrón.");

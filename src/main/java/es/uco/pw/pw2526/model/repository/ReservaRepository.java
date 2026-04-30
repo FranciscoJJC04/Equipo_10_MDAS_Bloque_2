@@ -45,8 +45,9 @@ public class ReservaRepository extends AbstractRepository {
      */
     public boolean addReserva(Reserva reserva) {
         try {
-            String query = sqlQueries.getProperty("insertar-reserva");
-            if (query == null) {
+            // Refactor de nombrado: evitamos nombres genéricos (query, result, r).
+            String insertReservaQuery = sqlQueries.getProperty("insertar-reserva");
+            if (insertReservaQuery == null) {
                 System.err.println(" No se encontró la query 'insertar-reserva' en sql.properties");
                 return false;
             }
@@ -75,7 +76,7 @@ public class ReservaRepository extends AbstractRepository {
 
             // Usar java.sql.Date para evitar problemas de mapeo con LocalDate
             java.sql.Date sqlFecha = java.sql.Date.valueOf(reserva.getFecha());
-            int result = jdbcTemplate.update(query,
+                int insertedRows = jdbcTemplate.update(insertReservaQuery,
                     reserva.getId(),
                     sqlFecha,
                     reserva.getDniSocio(),
@@ -84,7 +85,7 @@ public class ReservaRepository extends AbstractRepository {
                     reserva.getNumPasajeros(),
                     reserva.getDescripcionReserva());
 
-            return result > 0;
+            return insertedRows > 0;
 
         } catch (DataAccessException e) {
             System.err.println(" Error al insertar reserva: " + e.getMessage());
@@ -103,12 +104,12 @@ public class ReservaRepository extends AbstractRepository {
      */
     public Integer countReservasSolapados(String matricula, java.time.LocalDate inicio, java.time.LocalDate fin) {
         try {
-            String q = sqlQueries.getProperty("check-reserva-range");
-            if (q == null) {
+            String checkReservaRangeQuery = sqlQueries.getProperty("check-reserva-range");
+            if (checkReservaRangeQuery == null) {
                 System.err.println(" No se encontró la query 'check-reserva-range' en sql.properties");
                 return 0; // Cambiar a 0 en lugar de null
             }
-            Integer solapamientos = jdbcTemplate.queryForObject(q, Integer.class, matricula,
+            Integer solapamientos = jdbcTemplate.queryForObject(checkReservaRangeQuery, Integer.class, matricula,
                     java.sql.Date.valueOf(inicio), java.sql.Date.valueOf(fin));
             return (solapamientos != null) ? solapamientos : 0; // Asegurarse de que nunca sea null
         } catch (DataAccessException e) {
@@ -125,9 +126,9 @@ public class ReservaRepository extends AbstractRepository {
      */
     public Integer obtenerPlazas(String matricula) {
         try {
-            String q = sqlQueries.getProperty("select-embarcacion-num-plazas");
+            String selectPlazasQuery = sqlQueries.getProperty("select-embarcacion-num-plazas");
 
-            if (q == null) {
+            if (selectPlazasQuery == null) {
                 System.err.println("No se encontró la query 'select-embarcacion-num-plazas' en sql.properties");
                 return null;
             }
@@ -137,7 +138,7 @@ public class ReservaRepository extends AbstractRepository {
                 return null;
             }
 
-            return jdbcTemplate.queryForObject(q, Integer.class, matricula);
+            return jdbcTemplate.queryForObject(selectPlazasQuery, Integer.class, matricula);
         } catch (DataAccessException e) {
             System.err.println("Error obteniendo plazas de embarcación: " + e.getMessage());
             e.printStackTrace(); // Esto puede ayudarte a obtener más detalles del error
@@ -155,28 +156,28 @@ public class ReservaRepository extends AbstractRepository {
         try {
             String query = sqlQueries.getProperty("listar-reservas");
             if (query != null) {
-                List<Reserva> result = jdbcTemplate.query(query, new RowMapper<Reserva>() {
+                List<Reserva> reservas = jdbcTemplate.query(query, new RowMapper<Reserva>() {
                     public Reserva mapRow(ResultSet rs, int rowNumber) throws SQLException {
-                        Reserva r = new Reserva();
-                        r.setId(rs.getInt("id"));
-                        java.sql.Date fi = rs.getDate("fecha");
-                        r.setDniSocio(rs.getString("dni_socio"));
-                        r.setMatricula(rs.getString("matricula"));
-                        r.setDescripcionReserva(rs.getString("descripcion_reserva"));
+                        Reserva reserva = new Reserva();
+                        reserva.setId(rs.getInt("id"));
+                        java.sql.Date fechaReserva = rs.getDate("fecha");
+                        reserva.setDniSocio(rs.getString("dni_socio"));
+                        reserva.setMatricula(rs.getString("matricula"));
+                        reserva.setDescripcionReserva(rs.getString("descripcion_reserva"));
 
                         // Asignación de los valores de los pasajeros y el importe
-                        r.setNumPasajeros(rs.getInt("num_pasajeros_reserva"));
-                        r.setImporteTotal(rs.getDouble("importe_reserva"));
+                        reserva.setNumPasajeros(rs.getInt("num_pasajeros_reserva"));
+                        reserva.setImporteTotal(rs.getDouble("importe_reserva"));
 
                         // Convertir la fecha SQL a LocalDate
-                        if (fi != null) {
-                            r.setFecha(fi.toLocalDate());
+                        if (fechaReserva != null) {
+                            reserva.setFecha(fechaReserva.toLocalDate());
                         }
 
-                        return r;
+                        return reserva;
                     }
                 });
-                return result;
+                return reservas;
             } else {
                 return null;
             }
@@ -197,13 +198,13 @@ public class ReservaRepository extends AbstractRepository {
      */
     public List<String> listarEmbarcacionesDisponiblesPorFecha(java.time.LocalDate inicio, java.time.LocalDate fin) {
         try {
-            String q = sqlQueries.getProperty("listar-embarcaciones-disponibles-por-fecha");
-            if (q == null) {
+            String listarDisponiblesQuery = sqlQueries.getProperty("listar-embarcaciones-disponibles-por-fecha");
+            if (listarDisponiblesQuery == null) {
                 System.err.println(
                         " No se encontró la query 'listar-embarcaciones-disponibles-por-fecha' en sql.properties");
                 return null;
             }
-            return jdbcTemplate.queryForList(q, String.class, java.sql.Date.valueOf(inicio),
+            return jdbcTemplate.queryForList(listarDisponiblesQuery, String.class, java.sql.Date.valueOf(inicio),
                     java.sql.Date.valueOf(fin));
         } catch (DataAccessException e) {
             System.err.println(" Error listando matrículas disponibles: " + e.getMessage());
@@ -224,21 +225,21 @@ public class ReservaRepository extends AbstractRepository {
             if (query != null) {
                 return jdbcTemplate.queryForObject(query, new Object[]{id}, new RowMapper<Reserva>() {
                     public Reserva mapRow(ResultSet rs, int rowNumber) throws SQLException {
-                        Reserva r = new Reserva();
-                        r.setId(rs.getInt("id"));
-                        r.setDniSocio(rs.getString("dni_socio"));
-                        r.setMatricula(rs.getString("matricula"));
-                        r.setDescripcionReserva(rs.getString("descripcion_reserva"));
+                        Reserva reserva = new Reserva();
+                        reserva.setId(rs.getInt("id"));
+                        reserva.setDniSocio(rs.getString("dni_socio"));
+                        reserva.setMatricula(rs.getString("matricula"));
+                        reserva.setDescripcionReserva(rs.getString("descripcion_reserva"));
 
                         // Asignación de los valores num_pasajeros_reserva e importe_reserva
-                        r.setNumPasajeros(rs.getInt("num_pasajeros_reserva"));
-                        r.setImporteTotal(rs.getDouble("importe_reserva"));
+                        reserva.setNumPasajeros(rs.getInt("num_pasajeros_reserva"));
+                        reserva.setImporteTotal(rs.getDouble("importe_reserva"));
 
-                        java.sql.Date fi = rs.getDate("fecha");
-                        if (fi != null) {
-                            r.setFecha(fi.toLocalDate());
+                        java.sql.Date fechaReserva = rs.getDate("fecha");
+                        if (fechaReserva != null) {
+                            reserva.setFecha(fechaReserva.toLocalDate());
                         }
-                        return r;
+                        return reserva;
                     }
                 });
             } else {
@@ -263,26 +264,26 @@ public class ReservaRepository extends AbstractRepository {
         try {
             String query = sqlQueries.getProperty("listar-reservas-futuras");
             if (query != null) {
-                List<Reserva> result = jdbcTemplate.query(query, new RowMapper<Reserva>() {
+                List<Reserva> reservasFuturas = jdbcTemplate.query(query, new RowMapper<Reserva>() {
                     public Reserva mapRow(ResultSet rs, int rowNumber) throws SQLException {
-                        Reserva r = new Reserva();
-                        r.setId(rs.getInt("id"));
-                        r.setDniSocio(rs.getString("dni_socio"));
-                        r.setMatricula(rs.getString("matricula"));
-                        r.setDescripcionReserva(rs.getString("descripcion_reserva"));
+                        Reserva reserva = new Reserva();
+                        reserva.setId(rs.getInt("id"));
+                        reserva.setDniSocio(rs.getString("dni_socio"));
+                        reserva.setMatricula(rs.getString("matricula"));
+                        reserva.setDescripcionReserva(rs.getString("descripcion_reserva"));
 
                         // Asignación de los valores num_pasajeros_reserva e importe_reserva
-                        r.setNumPasajeros(rs.getInt("num_pasajeros_reserva"));
-                        r.setImporteTotal(rs.getDouble("importe_reserva"));
+                        reserva.setNumPasajeros(rs.getInt("num_pasajeros_reserva"));
+                        reserva.setImporteTotal(rs.getDouble("importe_reserva"));
 
-                        java.sql.Date fi = rs.getDate("fecha");
-                        if (fi != null) {
-                            r.setFecha(fi.toLocalDate());
+                        java.sql.Date fechaReserva = rs.getDate("fecha");
+                        if (fechaReserva != null) {
+                            reserva.setFecha(fechaReserva.toLocalDate());
                         }
-                        return r;
+                        return reserva;
                     }
                 }, java.sql.Date.valueOf(fecha)); // Pasamos la fecha para filtrar las futuras reservas
-                return result;
+                return reservasFuturas;
             } else {
                 return null;
             }
@@ -313,11 +314,11 @@ public class ReservaRepository extends AbstractRepository {
             java.sql.Date sqlFecha = java.sql.Date.valueOf(reserva.getFecha());
 
             // Ejecutar la consulta de actualización con los parámetros correctos
-            int result = jdbcTemplate.update(query,
+                int updatedRows = jdbcTemplate.update(query,
                     sqlFecha,  // Fecha
                     reserva.getId());  // ID de la reserva
 
-            return result > 0;  // Si result es mayor que 0, la actualización fue exitosa
+                return updatedRows > 0;
         } catch (DataAccessException e) {
             System.err.println("Error al actualizar los datos de la reserva: " + e.getMessage());
             return false;
@@ -346,13 +347,13 @@ public class ReservaRepository extends AbstractRepository {
             java.sql.Date sqlFecha = java.sql.Date.valueOf(reserva.getFecha());
 
             // Ejecutar la consulta de actualización
-            int result = jdbcTemplate.update(query,
+                int updatedRows = jdbcTemplate.update(query,
                     reserva.getDescripcionReserva(),
                     reserva.getNumPasajeros(),
                     sqlFecha,
                     reserva.getId());
 
-            return result > 0;  // Si se actualizó correctamente, result será mayor que 0
+                return updatedRows > 0;
         } catch (DataAccessException e) {
             System.err.println("Error al actualizar los datos de la reserva: " + e.getMessage());
             return false;
@@ -376,9 +377,9 @@ public class ReservaRepository extends AbstractRepository {
             }
 
             // Ejecutar la consulta de eliminación
-            int result = jdbcTemplate.update(query, idReserva);
+            int deletedRows = jdbcTemplate.update(query, idReserva);
 
-            return result > 0;  // Si se eliminó correctamente, result será mayor que 0
+            return deletedRows > 0;
         } catch (DataAccessException e) {
             System.err.println("Error cancelando reserva: " + e.getMessage());
             return false;

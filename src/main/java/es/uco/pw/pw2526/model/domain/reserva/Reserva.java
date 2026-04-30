@@ -18,8 +18,8 @@ public class Reserva
     private String dniSocio;      
     private String matricula;      
     private String dniPatron;      
-    private int num_pasajeros_reserva;
-    private double importe_reserva;
+    private int numeroPasajeros;
+    private double importeTotal;
     private String descripcionReserva;
 
     /**
@@ -33,8 +33,8 @@ public class Reserva
         this.dniSocio = "";
         this.matricula = "";
         this.dniPatron = "";
-        this.num_pasajeros_reserva = 0;
-        this.importe_reserva = 0.0;
+        this.numeroPasajeros = 0;
+        this.importeTotal = 0.0;
         this.descripcionReserva = "";
     }
 
@@ -45,18 +45,18 @@ public class Reserva
      * @param fecha fecha asociada a la reserva
      * @param dniSocio DNI del socio solicitante
      * @param matricula matrícula de la embarcación
-     * @param num_pasajeros_reserva número de pasajeros
-     * @param importe_reserva importe total de la reserva
+     * @param numeroPasajeros número de pasajeros
+     * @param importeTotal importe total de la reserva
      * @param descripcionReserva texto descriptivo opcional
      */
-    public Reserva(int id, LocalDate fecha, String dniSocio, String matricula,int num_pasajeros_reserva,double importe_reserva,String descripcionReserva) 
+    public Reserva(int id, LocalDate fecha, String dniSocio, String matricula,int numeroPasajeros,double importeTotal,String descripcionReserva) 
     {
         this.id = id;
         this.fecha = fecha;
         this.dniSocio = dniSocio;
         this.matricula = matricula;
-        this.num_pasajeros_reserva = num_pasajeros_reserva;
-        this.importe_reserva = importe_reserva;
+        this.numeroPasajeros = numeroPasajeros;
+        this.importeTotal = importeTotal;
         this.descripcionReserva = descripcionReserva;
     }
 
@@ -138,16 +138,16 @@ public class Reserva
      * @return número de pasajeros
      */
     public int getNumPasajeros() {
-        return num_pasajeros_reserva;
+        return numeroPasajeros;
     }
 
     /**
      * Establece el número de pasajeros para la reserva.
      *
-     * @param num_pasajeros_reserva número de pasajeros
+     * @param numeroPasajeros número de pasajeros
      */
-    public void setNumPasajeros(final int num_pasajeros_reserva) {
-        this.num_pasajeros_reserva = num_pasajeros_reserva;
+    public void setNumPasajeros(final int numeroPasajeros) {
+        this.numeroPasajeros = numeroPasajeros;
     }
 
     /**
@@ -156,16 +156,16 @@ public class Reserva
      * @return importe en unidades monetarias
      */
     public double getImporteTotal() {
-        return importe_reserva;
+        return importeTotal;
     }
 
     /**
      * Establece el importe total de la reserva.
      *
-     * @param importe_reserva importe a asignar
+     * @param importeTotal importe a asignar
      */
-    public void setImporteTotal(final double importe_reserva) {
-        this.importe_reserva = importe_reserva;
+    public void setImporteTotal(final double importeTotal) {
+        this.importeTotal = importeTotal;
     }
 
     /**
@@ -189,8 +189,8 @@ public class Reserva
     @Override
     public String toString() {
         return "Reserva [id=" + id + ", fecha=" + fecha + ", dniSocio=" + dniSocio + ", matricula=" + matricula
-                + ", dniPatron=" + dniPatron + ", num_pasajeros_reserva=" + num_pasajeros_reserva + ", importe_reserva="
-                + importe_reserva + ", descripcionReserva=" + descripcionReserva + "]";
+                + ", dniPatron=" + dniPatron + ", numeroPasajeros=" + numeroPasajeros + ", importeTotal="
+                + importeTotal + ", descripcionReserva=" + descripcionReserva + "]";
     }
     
 }

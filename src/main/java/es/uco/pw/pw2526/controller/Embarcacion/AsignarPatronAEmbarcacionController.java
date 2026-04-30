@@ -67,7 +67,7 @@ class AsignarPatronaEmbarcacionController {
         embarcacion.setMatricula(matricula);
 
         Patron patron = new Patron();
-        patron.setDni_patron(dniPatron);
+        patron.setDniPatron(dniPatron);
 
         // Verificación de solapamiento
         boolean haySolapamiento = embarcacionRepository.existeSolapamientoEmbarcacion(matricula, fechaInicio, fechaFin);
