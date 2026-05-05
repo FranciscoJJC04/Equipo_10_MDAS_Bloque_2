@@ -45,18 +45,15 @@ public class PatronRepository extends AbstractRepository {
      */
     public boolean addPatron(Patron patron) {
         try {
-            // Validación de entrada
             if (patron == null || patron.getDniPatron() == null || patron.getDniPatron().isBlank()) {
                 return false;
             }
 
-            // Comprobar existencia del patrón
             if (existsByDni(patron.getDniPatron())) {
                 System.err.println("Error: El patrón con DNI " + patron.getDniPatron() + " ya está registrado.");
-                return false; // El patrón ya existe
+                return false;
             }
 
-            // Ejecutar la consulta SQL para insertar el patrón
             String query = sqlQueries.getProperty("insertar-patron");
             if (query != null) {
                 int insertedRows = jdbcTemplate.update(query,
@@ -90,15 +87,13 @@ public class PatronRepository extends AbstractRepository {
                 return false;
             }
 
-            // Consultar si el patrón existe con el DNI proporcionado
             String query = sqlQueries.getProperty("existe-patron");
             if (query != null) {
                 Integer count = jdbcTemplate.queryForObject(query, Integer.class, dni);
-                return count != null && count > 0; // Si existe al menos un patrón con ese DNI
+                return count != null && count > 0;
             }
             return false;
         } catch (DataAccessException ex) {
-            // Loggear el error para su seguimiento
             System.err.println("Error al comprobar la existencia del patrón: " + ex.getMessage());
             return false;
         }
@@ -114,12 +109,10 @@ public class PatronRepository extends AbstractRepository {
      */
     public List<Patron> obtenerPatrones() {
         try {
-            // Consultar la base de datos para obtener la lista de patrones
             String query = sqlQueries.getProperty("listar-patrones");
             if (query != null) {
                 List<Patron> patrones = jdbcTemplate.query(query, new RowMapper<Patron>() {
                     public Patron mapRow(ResultSet rs, int rowNumber) throws SQLException {
-                        // Mapear los resultados de la consulta a objetos Patron
                         return new Patron(
                                 rs.getString("dni_patron"),
                                 rs.getString("nombre"),
@@ -151,18 +144,15 @@ public class PatronRepository extends AbstractRepository {
      */
     public boolean updatePatron(Patron patron) {
         try {
-            // Validar que el patrón no sea nulo y que el DNI sea válido
             if (patron == null || patron.getDniPatron() == null || patron.getDniPatron().isBlank()) {
                 return false;
             }
 
-            // Verificar existencia del patrón antes de actualizar
             if (!existsByDni(patron.getDniPatron())) {
                 System.err.println("No existe el patrón con DNI " + patron.getDniPatron());
-                return false; // No existe el patrón
+                return false;
             }
 
-            // Ejecutar la consulta SQL para actualizar los datos del patrón
             String query = sqlQueries.getProperty("actualizar-patron");
             if (query != null) {
                 int updatedRows = jdbcTemplate.update(query,

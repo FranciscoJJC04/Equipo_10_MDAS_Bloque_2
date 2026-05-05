@@ -34,7 +34,6 @@ import java.sql.Statement;
  */
 @Repository
 public class SocioRepository extends AbstractRepository {
-    // Este es el repository de socios
     public SocioRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -203,10 +202,8 @@ public List<Inscripcion> obtenerInscripciones() {
                     String tipoStr = rs.getString("tipo");
                     if (tipoStr != null) {
                         try {
-                            // Try direct enum lookup using normalized name
                             ins.setTipo(TipoInscripcion.valueOf(tipoStr.trim().toUpperCase()));
                         } catch (IllegalArgumentException e) {
-                            // Fallback: try case-insensitive match against enum values
                             TipoInscripcion matched = null;
                             for (TipoInscripcion t : TipoInscripcion.values()) {
                                 if (t.name().equalsIgnoreCase(tipoStr.trim())) {
@@ -246,13 +243,11 @@ public List<Inscripcion> obtenerInscripcionesPorTipo(TipoInscripcion tipo) {
             public Inscripcion mapRow(ResultSet rs, int rowNum) throws SQLException {
                 Inscripcion ins = new Inscripcion();
                 ins.setId(rs.getInt("id"));
-                // Convertimos el campo tipo de la BD en enum
                 String tipoStr = rs.getString("tipo");
                 if (tipoStr != null) {
                     try {
                         ins.setTipo(TipoInscripcion.valueOf(tipoStr.trim().toUpperCase()));
                     } catch (IllegalArgumentException e) {
-                        // fallback case-insensitive
                         for (TipoInscripcion t : TipoInscripcion.values()) {
                             if (t.name().equalsIgnoreCase(tipoStr.trim())) {
                                 ins.setTipo(t);
@@ -294,7 +289,6 @@ public Inscripcion obtenerInscripcionPorDni(String dni) {
                 try {
                     ins.setTipo(TipoInscripcion.valueOf(normalized));
                 } catch (IllegalArgumentException ex) {
-                    // fallback: case-insensitive match
                     TipoInscripcion matched = TipoInscripcion.NONE;
                     for (TipoInscripcion t : TipoInscripcion.values()) {
                         if (t.name().equalsIgnoreCase(tipoStr.trim())) {
@@ -330,7 +324,6 @@ public Inscripcion obtenerInscripcionPorDni(String dni) {
                 return false;
             }
 
-            // Comprobar existencia
             if (existsByDni(socio.getDni())) {
                 System.err.println("Error: El socio con DNI " + socio.getDni() + " ya está registrado.");
                 return false; // ya existe
@@ -380,13 +373,11 @@ public Inscripcion obtenerInscripcionPorDni(String dni) {
             return false;
         }
 
-        // Verificar existencia antes de actualizar
         if (!existsByDni(socio.getDni())) {
             System.err.println("No existe el socio con DNI " + socio.getDni());
             return false;
         }
 
-        // La query debe estar definida en tu sql.properties
         String query = sqlQueries.getProperty("actualizar-socio");
         if (query != null) {
             int result = jdbcTemplate.update(query,
@@ -443,7 +434,6 @@ public Inscripcion findInscripcionById(Integer id) {
             return jdbcTemplate.queryForObject(query, (rs, rowNum) -> {
                 Inscripcion inscripcion = new Inscripcion();
                 inscripcion.setId(rs.getInt("id"));
-                // CAMBIO: normalizar a mayúsculas
                 String tipoDb = rs.getString("tipo");
                 inscripcion.setTipo(TipoInscripcion.valueOf(tipoDb.trim().toUpperCase()));
                 return inscripcion;
@@ -555,7 +545,6 @@ public Inscripcion findInscripcionById(Integer id) {
                 return false;
             }
 
-            // Comprobar existencia del socio (usando el método de ESTA clase)
             if (existsByDni(socio.getDni())) {
                 System.err.println("⚠️ El socio con DNI " + socio.getDni() + " ya existe.");
                 return false;
@@ -570,7 +559,6 @@ public Inscripcion findInscripcionById(Integer id) {
                 return false;
             }
 
-            // Insertar socio (misma cuota y datos que individual)
             int result = jdbcTemplate.update(query,
                     socio.getDni(),
                     socio.getNombre(),
@@ -651,7 +639,6 @@ public Inscripcion findInscripcionById(Integer id) {
                 return false;
             }
 
-            // Si ya existe, no lo insertamos
             if (existsByDni(conyuge.getDni())) {
                 System.err.println("⚠️ El cónyuge con DNI " + conyuge.getDni() + " ya existe.");
                 return false;
@@ -662,7 +649,6 @@ public Inscripcion findInscripcionById(Integer id) {
 
             System.out.println("Insertando conyuge en la inscripcion --> " + conyuge.getIdInscripcion());
 
-            // Asegurar que los campos NOT NULL no estén vacíos
             if (conyuge.getFechaNacimiento() == null) {
                 conyuge.setFechaNacimiento(java.time.LocalDate.now()); // temporal
             }
@@ -673,7 +659,6 @@ public Inscripcion findInscripcionById(Integer id) {
                 conyuge.setDireccion("Sin especificar");
             }
 
-            // Insertar socio con los datos requeridos
             String query = sqlQueries.getProperty("insertar-socio");
             if (query == null) {
                 System.err.println(" No se encontró la query 'insertar-socio'");
@@ -713,7 +698,6 @@ public Inscripcion findInscripcionById(Integer id) {
         return false;
     }
 
-    // Asignar directamente el idInscripcion recibido
     conyuge.setIdInscripcion(idInscripcion);
 
     String query = sqlQueries.getProperty("insertar-socio");
@@ -751,7 +735,6 @@ public Inscripcion findInscripcionById(Integer id) {
                 return false;
             }
 
-            // Si ya existe, no lo insertamos
             if (existsByDni(hijo.getDni())) {
                 System.err.println("⚠️ El cónyuge con DNI " + hijo.getDni() + " ya existe.");
                 return false;
@@ -762,7 +745,6 @@ public Inscripcion findInscripcionById(Integer id) {
 
             System.out.println("Insertando hijo en la inscripcion --> " + hijo.getIdInscripcion());
 
-            // Asegurar que los campos NOT NULL no estén vacíos
             if (hijo.getFechaNacimiento() == null) {
                 hijo.setFechaNacimiento(java.time.LocalDate.now()); // temporal
             }
@@ -773,7 +755,6 @@ public Inscripcion findInscripcionById(Integer id) {
                 hijo.setDireccion("Sin especificar");
             }
 
-            // Insertar socio con los datos requeridos
             String query = sqlQueries.getProperty("insertar-socio");
             if (query == null) {
                 System.err.println(" No se encontró la query 'insertar-socio'");
@@ -1026,3 +1007,6 @@ public boolean eliminarSocioSiNoTieneInscripcion(String dniSocio) {
 
 
 }
+
+
+

@@ -36,160 +36,115 @@ public class SocioRestController
         this.socioRepository.setSQLQueriesFileName(sqlQueriesFileName);
     }
 
-    /** GET: Obtener todos los socios */
     @GetMapping
-    public ResponseEntity<List<Socio>>ObtenerSociosApi()
-    {
+    public ResponseEntity<List<Socio>> obtenerSociosApi() {
         List<Socio> socios = socioRepository.obtenerSocios();
         ResponseEntity<List<Socio>> sociosResponse = new ResponseEntity<>(socios, HttpStatus.OK);
         return sociosResponse;
     }
 
-    /** GET: Obtener socio por dni */
     @GetMapping("/{dni}")
-    public ResponseEntity<Socio> getStudentById(@PathVariable String dni){
-        // Refactor de nombrado: evitamos términos no de dominio (student).
+    public ResponseEntity<Socio> obtenerSocioPorDni(@PathVariable String dni) {
         Socio socioEncontrado = socioRepository.findByDni(dni);
-        ResponseEntity<Socio> socioResponse;
-        if(socioEncontrado != null){
-            socioResponse = new ResponseEntity<>(socioEncontrado, HttpStatus.OK);
+        if (socioEncontrado != null) {
+            return new ResponseEntity<>(socioEncontrado, HttpStatus.OK);
         }
-        else{
-            socioResponse = new ResponseEntity<>(socioEncontrado, HttpStatus.NOT_FOUND);
-        }
-        return socioResponse;
+        return new ResponseEntity<>(socioEncontrado, HttpStatus.NOT_FOUND);
     }
 
-    /** GET: Listado de inscripciones individuales */
     @GetMapping("/inscripciones/individuales")
-    public ResponseEntity<List<Inscripcion>> obtenerInscripcionesIndividuales() 
-    {
+    public ResponseEntity<List<Inscripcion>> obtenerInscripcionesIndividuales() {
         List<Inscripcion> inscripciones = socioRepository.obtenerInscripcionesPorTipo(TipoInscripcion.INDIVIDUAL);
         return new ResponseEntity<>(inscripciones, HttpStatus.OK);
     }
 
-    /** GET: Listado de inscripciones familiares */
     @GetMapping("/inscripciones/familiares")
-    public ResponseEntity<List<Inscripcion>> obtenerInscripcionesFamiliares() 
-    {
+    public ResponseEntity<List<Inscripcion>> obtenerInscripcionesFamiliares() {
         List<Inscripcion> inscripciones = socioRepository.obtenerInscripcionesPorTipo(TipoInscripcion.FAMILIAR);
         return new ResponseEntity<>(inscripciones, HttpStatus.OK);
     }
 
-    /** GET:Obtener datos de una inscripcion pasando el dni de un socio*/
     @GetMapping("/inscripciones/{dni}")
-    public ResponseEntity<Inscripcion> obtenerInscripcionPorDni(@PathVariable String dni) 
-{
-    Inscripcion inscripcion = socioRepository.obtenerInscripcionPorDni(dni);
-    if (inscripcion != null) {
-        return ResponseEntity.ok(inscripcion);
-    } else {
+    public ResponseEntity<Inscripcion> obtenerInscripcionPorDni(@PathVariable String dni) {
+        Inscripcion inscripcion = socioRepository.obtenerInscripcionPorDni(dni);
+        if (inscripcion != null) {
+            return ResponseEntity.ok(inscripcion);
+        }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
-}
 
-    /** POST: Crear un nuevo socio */
     @PostMapping(consumes = "application/json")
-    public ResponseEntity<Socio> crearSocio(@RequestBody Socio socio) 
-    {
-    ResponseEntity<Socio> socioResponse;
+    public ResponseEntity<Socio> crearSocio(@RequestBody Socio socio) {
+        boolean existe = socioRepository.existsByDni(socio.getDni());
+        if (existe) {
+            return new ResponseEntity<>(socio, HttpStatus.UNPROCESSABLE_ENTITY);
+        }
 
-    /** Verificar si ya existe un socio con el mismo DNI */
-    boolean existe = socioRepository.existsByDni(socio.getDni());
-    if (existe) {
-        // Si ya existe, devolver error 422 (Unprocessable Entity)
-        socioResponse = new ResponseEntity<>(socio, HttpStatus.UNPROCESSABLE_ENTITY);
-    } else {
-        // Intentar insertar el nuevo socio
         boolean socioCreado = socioRepository.addSocio(socio);
         if (socioCreado) {
-            // Si se inserta correctamente, devolver 201 (Created)
-            socioResponse = new ResponseEntity<>(socio, HttpStatus.CREATED);
-        } else {
-            // Si hay error interno al insertar, devolver 500
-            socioResponse = new ResponseEntity<>(socio, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(socio, HttpStatus.CREATED);
         }
+        return new ResponseEntity<>(socio, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    return socioResponse;
-    }
-
-    /** POST: Crear un nuevo socio asociándolo a una inscripción familiar ya existente */
     @PostMapping("/familiar/{idInscripcion}")
     public ResponseEntity<Socio> crearSocioFamiliar(
             @PathVariable int idInscripcion,
             @RequestBody Socio conyuge) {
 
-        // Validar si ya existe un socio con ese DNI
         if (socioRepository.existsByDni(conyuge.getDni())) {
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(conyuge);
         }
 
-        // Intentar insertar el nuevo socio asociado al idInscripcion
         boolean conyugeCreado = socioRepository.addConyuge(idInscripcion, conyuge);
-
         if (conyugeCreado) {
             return ResponseEntity.status(HttpStatus.CREATED).body(conyuge);
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(conyuge);
         }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(conyuge);
     }
 
-    /** PATCH: Actualizar datos de un socio existente */
-@PatchMapping(path="/{dni}", consumes="application/json")
-public ResponseEntity<Socio> patchSocio(@PathVariable String dni, @RequestBody Socio requestSocio) {
-    Socio response = requestSocio;
-    try {
-        // Buscar socio actual por DNI
-        Socio currentSocio = this.socioRepository.findByDni(dni);
-        if (currentSocio != null) {
+    @PatchMapping(path = "/{dni}", consumes = "application/json")
+    public ResponseEntity<Socio> patchSocio(@PathVariable String dni, @RequestBody Socio requestSocio) {
+        try {
+            Socio currentSocio = this.socioRepository.findByDni(dni);
+            if (currentSocio != null) {
+                requestSocio.setDni(currentSocio.getDni());
 
-            // Aseguramos que el DNI no se cambia
-            requestSocio.setDni(currentSocio.getDni());
+                if (requestSocio.getNombre() != null) {
+                    currentSocio.setNombre(requestSocio.getNombre());
+                }
+                if (requestSocio.getApellidos() != null) {
+                    currentSocio.setApellidos(requestSocio.getApellidos());
+                }
+                if (requestSocio.getFechaNacimiento() != null) {
+                    currentSocio.setFechaNacimiento(requestSocio.getFechaNacimiento());
+                }
+                if (requestSocio.getDireccion() != null) {
+                    currentSocio.setDireccion(requestSocio.getDireccion());
+                }
+                if (requestSocio.getCuotaInscripcion() != 0.0) {
+                    currentSocio.setCuotaInscripcion(requestSocio.getCuotaInscripcion());
+                }
+                if (requestSocio.getFechaInscripcion() != null) {
+                    currentSocio.setFechaInscripcion(requestSocio.getFechaInscripcion());
+                }
+                if (requestSocio.getIdInscripcion() != 0) {
+                    currentSocio.setIdInscripcion(requestSocio.getIdInscripcion());
+                }
+                currentSocio.setTituloPatron(requestSocio.isTituloPatron());
 
-            // Actualizar solo los campos no nulos
-            if (requestSocio.getNombre() != null) {
-                currentSocio.setNombre(requestSocio.getNombre());
-            }
-            if (requestSocio.getApellidos() != null) {
-                currentSocio.setApellidos(requestSocio.getApellidos());
-            }
-            if (requestSocio.getFechaNacimiento() != null) {
-                currentSocio.setFechaNacimiento(requestSocio.getFechaNacimiento());
-            }
-            if (requestSocio.getDireccion() != null) {
-                currentSocio.setDireccion(requestSocio.getDireccion());
-            }
-            if (requestSocio.getCuotaInscripcion() != 0.0) {
-                currentSocio.setCuotaInscripcion(requestSocio.getCuotaInscripcion());
-            }
-            if (requestSocio.getFechaInscripcion() != null) {
-                currentSocio.setFechaInscripcion(requestSocio.getFechaInscripcion());
-            }
-            if (requestSocio.getIdInscripcion() != 0) {
-                currentSocio.setIdInscripcion(requestSocio.getIdInscripcion());
-            }
-            // if (requestSocio.getTipo() != null) {
-            //     currentSocio.setTipo(requestSocio.getTipo());
-            // }
-            currentSocio.setTituloPatron(requestSocio.isTituloPatron());
-
-            // Guardar socio actualizado
-            boolean socioActualizado = socioRepository.updateSocio(currentSocio);
-            if (socioActualizado) {
-                response = currentSocio;
-                return ResponseEntity.ok(response);
-            } else {
+                boolean socioActualizado = socioRepository.updateSocio(currentSocio);
+                if (socioActualizado) {
+                    return ResponseEntity.ok(currentSocio);
+                }
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(requestSocio);
             }
-        } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            System.err.println("Error en PATCH socio: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(requestSocio);
         }
-    } catch (Exception e) {
-        System.err.println("Error en PATCH socio: " + e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(requestSocio);
     }
-}
 
 
 /** PUT: Actualizar tipo de inscripción por ID */

@@ -20,8 +20,7 @@ public class Socio {
     private int idInscripcion;
     private TipoInscripcion tipo;
 
-    public Socio() 
-    {
+    public Socio() {
         this.dni = "";
         this.nombre = "";
         this.apellidos = "";
@@ -32,13 +31,11 @@ public class Socio {
         this.fechaInscripcion = LocalDate.now();
         this.idInscripcion = 0;
         this.tipo = TipoInscripcion.NONE;
-
-
     }
 
     public Socio(String dni, String nombre, String apellidos, LocalDate fechaNacimiento, String direccion,
-                 boolean tituloPatron, double cuotaInscripcion, LocalDate fechaInscripcion, int idInscripcion, TipoInscripcion tipo) 
-    {
+            boolean tituloPatron, double cuotaInscripcion, LocalDate fechaInscripcion, int idInscripcion, 
+            TipoInscripcion tipo) {
         this.dni = dni;
         this.nombre = nombre;
         this.apellidos = apellidos;
@@ -48,6 +45,7 @@ public class Socio {
         this.cuotaInscripcion = cuotaInscripcion;
         this.fechaInscripcion = fechaInscripcion;
         this.idInscripcion = idInscripcion;
+        this.tipo = tipo;
         this.tipo=tipo;
     }
 

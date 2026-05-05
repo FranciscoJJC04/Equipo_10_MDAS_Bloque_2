@@ -103,7 +103,6 @@ public class AlquilerRepository extends AbstractRepository
 
     public boolean addSocioAlquiler(String dniSocio, int idAlquiler) {
     try {
-        // Verificar si el socio ya está en el alquiler
         String existsSocioAlquilerQuery = sqlQueries.getProperty("existe-socio-en-alquiler");
         if (existsSocioAlquilerQuery != null) {
             Integer existe = jdbcTemplate.queryForObject(existsSocioAlquilerQuery, Integer.class, dniSocio, idAlquiler);
@@ -113,7 +112,6 @@ public class AlquilerRepository extends AbstractRepository
             }
         }
 
-        // Insertar el socio en la tabla socio_alquiler
         String queryInsert = sqlQueries.getProperty("insertar-socio-alquiler");
         if (queryInsert == null) {
             System.err.println(" No se encontró la query 'insertar-socio-alquiler'");
@@ -208,26 +206,20 @@ public class AlquilerRepository extends AbstractRepository
                 List<Alquiler> alquileres = jdbcTemplate.query(query, new RowMapper<Alquiler>(){
                 public Alquiler mapRow(ResultSet rs, int rowNumber) throws SQLException{
                     Alquiler alquiler = new Alquiler();
-                    // Mapear el id del alquiler y otros campos relevantes
                     try {
-                        // id_alquiler en la BBDD
                         int idAlquiler = rs.getInt("id_alquiler");
                         alquiler.setIdAlquiler(idAlquiler);
                     } catch (SQLException ex) {
-                        // si no existe la columna, no romper: dejar id por defecto (0)
                     }
                     alquiler.setDniSocio(rs.getString("dni_socio"));
                     alquiler.setMatricula(rs.getString("matricula"));
-                    // mapear num_pasajeros y importe_total si existen
                     try {
                         alquiler.setNumPasajeros(rs.getInt("num_pasajeros"));
                     } catch (SQLException ex) {
-                        // ignorar si la columna no existe
                     }
                     try {
                         alquiler.setImporteTotal(rs.getDouble("importe_total"));
                     } catch (SQLException ex) {
-                        // ignorar si la columna no existe
                     }
                     java.sql.Date fechaInicio = rs.getDate("fecha_inicio");
                     java.sql.Date fechaFin = rs.getDate("fecha_fin");
@@ -269,7 +261,6 @@ public List<String> listarEmbaracionesDisponiblesPorFecha(java.time.LocalDate in
     }
 }
 
-//P2 añadido
 public Alquiler obtenerAlquilerPorId(int idAlquiler) {
     try {
         String selectAlquilerByIdQuery = sqlQueries.getProperty("select-alquiler-by-id");
@@ -302,6 +293,7 @@ public Alquiler obtenerAlquilerPorId(int idAlquiler) {
         return null;
     }
 }
+
 public List<Alquiler> obtenerAlquileresFuturos(java.time.LocalDate fechaReferencia) {
     try {
         String listarFuturosQuery = sqlQueries.getProperty("listar-alquileres-futuros");
@@ -335,7 +327,6 @@ public List<Alquiler> obtenerAlquileresFuturos(java.time.LocalDate fechaReferenc
     }
 }
 
-//P2 semana 2
 public boolean vincularSocioNoTitular(int idAlquiler, String dniSocio) {
     try {
         String insertSocioAlquilerQuery = sqlQueries.getProperty("insertar-socio-alquiler");
@@ -344,7 +335,6 @@ public boolean vincularSocioNoTitular(int idAlquiler, String dniSocio) {
             return false;
         }
 
-        // insert into socio_alquiler (dni_socio, id_alquiler)
         int insertedRows = jdbcTemplate.update(insertSocioAlquilerQuery, dniSocio, idAlquiler);
         return insertedRows > 0;
 
@@ -362,7 +352,6 @@ public boolean desvincularSocioNoTitular(int idAlquiler, String dniSocio) {
             return false;
         }
 
-        // delete from socio_alquiler where dni_socio = ? and id_alquiler = ?
         int deletedRows = jdbcTemplate.update(deleteSocioAlquilerQuery, dniSocio, idAlquiler);
         return deletedRows > 0;
 
@@ -380,7 +369,6 @@ public boolean cancelarAlquilerFuturo(int idAlquiler) {
             return false;
         }
 
-        // delete from alquiler where id_alquiler = ?
         int deletedRows = jdbcTemplate.update(deleteAlquilerQuery, idAlquiler);
         return deletedRows > 0;
 
