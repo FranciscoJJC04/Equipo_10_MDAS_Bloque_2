@@ -47,6 +47,28 @@ public class AñadirSocioAlquilerController {
         }
     }
 
+    private ModelAndView crearVistaFallo(String error) {
+        ModelAndView mv = new ModelAndView("alquiler/addSociosAlquilerViewFail");
+        mv.addObject("error", error);
+        return mv;
+    }
+
+    private ModelAndView crearVistaExito(String success) {
+        ModelAndView mv = new ModelAndView("alquiler/addSociosAlquilerViewSuccess");
+        mv.addObject("success", success);
+        return mv;
+    }
+
+    private void cargarSocios(ModelAndView mv) {
+        try {
+            java.util.List<?> socios = socioRepository.obtenerSocios();
+            mv.addObject("socios", socios);
+        } catch (Exception e) {
+            System.err.println("Aviso: no se pudieron cargar los socios en GET: " + e.getMessage());
+            mv.addObject("socios", new java.util.ArrayList<>());
+        }
+    }
+
     @GetMapping("/addSociosAlquiler")
     /**
      * Muestra la vista para añadir un socio a un alquiler.
@@ -56,15 +78,7 @@ public class AñadirSocioAlquilerController {
     public ModelAndView getAddSocioView() {
         this.modelAndView.setViewName("alquiler/addSociosAlquilerView.html");
         this.modelAndView.addObject("newSocio", new Socio());
-        // Añadir la lista de socios para poblar el desplegable
-        try {
-            java.util.List<?> socios = socioRepository.obtenerSocios();
-            this.modelAndView.addObject("socios", socios);
-        } catch (Exception e) {
-            System.err.println("Aviso: no se pudieron cargar los socios en GET: " + e.getMessage());
-            this.modelAndView.addObject("socios", new java.util.ArrayList<>());
-        }
-
+        cargarSocios(this.modelAndView);
         return modelAndView;
     }
 
@@ -82,39 +96,27 @@ public class AñadirSocioAlquilerController {
      */
     public ModelAndView procesarFormulario(@RequestParam("idAlquiler") int idAlquiler,
         @RequestParam("dniSocio") String dniSocio) {
-        // comprobar plazas y socios actuales para aplicar la restricción: solo se
-        // pueden añadir hasta (plazas - 1)
         Integer plazas = alquilerRepository.getPlazasByAlquiler(idAlquiler);
         Integer actuales = alquilerRepository.countSociosEnAlquiler(idAlquiler);
 
         if (plazas == null) {
-            ModelAndView mv = new ModelAndView("alquiler/addSociosAlquilerViewFail");
-            mv.addObject("error", "No se pudo determinar la capacidad del alquiler.");
-            return mv;
+            return crearVistaFallo("No se pudo determinar la capacidad del alquiler.");
         }
 
         int maxSocios = Math.max(0, plazas - 1);
         int actualesInt = (actuales == null) ? 0 : actuales.intValue();
 
         if (actualesInt >= maxSocios) {
-            ModelAndView mv = new ModelAndView("alquiler/addSociosAlquilerViewFail");
-            mv.addObject("error",
+            return crearVistaFallo(
                     "No se puede añadir más socios: capacidad alcanzada (" + actualesInt + "/" + maxSocios + ").");
-            return mv;
         }
 
-        // Refactor de nombrado: boolean descriptivo de resultado.
         boolean socioAnadidoAlAlquiler = alquilerRepository.addSocioAlquiler(dniSocio, idAlquiler);
 
         if (socioAnadidoAlAlquiler) {
-            ModelAndView mv = new ModelAndView("alquiler/addSociosAlquilerViewSuccess");
-            mv.addObject("success", "Socio añadido correctamente al alquiler.");
-            return mv;
-        } else {
-            ModelAndView mv = new ModelAndView("alquiler/addSociosAlquilerViewFail");
-            mv.addObject("error", "No se pudo añadir el socio al alquiler (error al insertar).");
-            return mv;
+            return crearVistaExito("Socio añadido correctamente al alquiler.");
         }
+        return crearVistaFallo("No se pudo añadir el socio al alquiler (error al insertar).");
     }
 
 }

@@ -45,6 +45,26 @@ public class AlquilerRestController {
         this.alquilerRepository.setSQLQueriesFileName(sqlQueriesFileName);
     }
 
+    private String validarDatosAlquiler(Alquiler alquiler) {
+        if (alquiler.getMatricula() == null || alquiler.getMatricula().isEmpty()) {
+            return "La matrícula es obligatoria.";
+        }
+        if (alquiler.getFechaInicio() == null || alquiler.getFechaFin() == null) {
+            return "Las fechas de inicio y fin son obligatorias.";
+        }
+        if (alquiler.getFechaFin().isBefore(alquiler.getFechaInicio())) {
+            return "La fecha de fin no puede ser anterior a la fecha de inicio.";
+        }
+        if (alquiler.getNumPasajeros() <= 0) {
+            return "El número de pasajeros debe ser mayor que 0.";
+        }
+        return null;
+    }
+
+    private boolean esAlquilerFuturo(Alquiler alquiler) {
+        return alquiler.getFechaInicio().isAfter(LocalDate.now());
+    }
+
     /**
      * Obtiene todos los alquileres registrados.
      * 
@@ -131,21 +151,9 @@ public class AlquilerRestController {
     @PostMapping(consumes = "application/json")
     public ResponseEntity<String> createAlquiler(@RequestBody Alquiler alquiler) {
         try {
-            if (alquiler.getMatricula() == null || alquiler.getMatricula().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("La matrícula es obligatoria.");
-            }
-            if (alquiler.getFechaInicio() == null || alquiler.getFechaFin() == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Las fechas de inicio y fin son obligatorias.");
-            }
-            if (alquiler.getFechaFin().isBefore(alquiler.getFechaInicio())) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("La fecha de fin no puede ser anterior a la fecha de inicio.");
-            }
-            if (alquiler.getNumPasajeros() <= 0) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("El número de pasajeros debe ser mayor que 0.");
+            String errorValidacion = validarDatosAlquiler(alquiler);
+            if (errorValidacion != null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorValidacion);
             }
 
             boolean alquilerCreado = alquilerRepository.addAlquiler(alquiler);
@@ -183,7 +191,7 @@ public class AlquilerRestController {
                         .body("No existe el alquiler con ID " + id);
             }
 
-            if (!alquiler.getFechaInicio().isAfter(LocalDate.now())) {
+            if (!esAlquilerFuturo(alquiler)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Solo se puede vincular socios en alquileres FUTUROS.");
             }
@@ -223,7 +231,7 @@ public class AlquilerRestController {
                         .body("No existe el alquiler con ID " + id);
             }
 
-            if (!alquiler.getFechaInicio().isAfter(LocalDate.now())) {
+            if (!esAlquilerFuturo(alquiler)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Solo se puede desvincular socios en alquileres FUTUROS.");
             }
@@ -260,7 +268,7 @@ public class AlquilerRestController {
                         .body("El alquiler no existe.");
             }
 
-            if (!alquiler.getFechaInicio().isAfter(LocalDate.now())) {
+            if (!esAlquilerFuturo(alquiler)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Solo se pueden cancelar alquileres FUTUROS.");
             }

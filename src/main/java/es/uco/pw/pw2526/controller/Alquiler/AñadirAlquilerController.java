@@ -62,6 +62,43 @@ public class AñadirAlquilerController {
         }
     }
 
+    private ModelAndView crearRespuestaFallida(String vista, String error) {
+        ModelAndView mv = new ModelAndView(vista);
+        mv.addObject("error", error);
+        populateSociosYEmbarcaciones(mv);
+        return mv;
+    }
+
+    private void cargarSocios(ModelAndView mv) {
+        try {
+            java.util.List<?> socios = socioRepository.obtenerSociosConPatron();
+            mv.addObject("socios", socios);
+        } catch (Exception e) {
+            System.err.println("Aviso: no se pudieron cargar los socios tras el POST: " + e.getMessage());
+            mv.addObject("socios", new ArrayList<>());
+        }
+    }
+
+    private void cargarEmbarcaciones(ModelAndView mv) {
+        try {
+            List<Embarcacion> embarcaciones = new ArrayList<>();
+            for (TipoEmbarcacion t : TipoEmbarcacion.values()) {
+                if (t == TipoEmbarcacion.NONE) {
+                    continue;
+                }
+                List<Embarcacion> embarcacionesPorTipo = embarcacionRepository.listarPorTipo(t);
+                if (embarcacionesPorTipo != null) {
+                    embarcaciones.addAll(embarcacionesPorTipo);
+                }
+            }
+            mv.addObject("embarcaciones", embarcaciones);
+        } catch (Exception e) {
+            System.err.println("Aviso: no se pudieron cargar las embarcaciones tras el POST: " + e.getMessage());
+            mv.addObject("embarcaciones", new ArrayList<Embarcacion>());
+            mv.addObject("matriculas", new ArrayList<String>());
+        }
+    }
+
     @GetMapping("/addAlquiler")
     /**
      * Muestra la vista de creación de un nuevo alquiler.
@@ -95,13 +132,8 @@ public class AñadirAlquilerController {
      * @return ModelAndView con la vista de éxito o fallo y mensajes
      */
     public ModelAndView postAddAlquiler(@ModelAttribute("newAlquiler") Alquiler newAlquiler) {
-        ModelAndView mv = new ModelAndView();
-        // Validaciones básicas
         if (newAlquiler == null) {
-            mv.setViewName("alquiler/crearAlquilerView");
-            mv.addObject("error", "Datos de alquiler vacíos.");
-            populateSociosYEmbarcaciones(mv);
-            return mv;
+            return crearRespuestaFallida("alquiler/crearAlquilerView", "Datos de alquiler vacíos.");
         }
 
         String matricula = newAlquiler.getMatricula();
@@ -111,61 +143,41 @@ public class AñadirAlquilerController {
         java.time.LocalDate fin = newAlquiler.getFechaFin();
 
         if (inicio == null || fin == null) {
-            mv.setViewName("alquiler/crearAlquilerViewFail");
-            mv.addObject("error", "Fechas de inicio y fin obligatorias.");
-            populateSociosYEmbarcaciones(mv);
-            return mv;
+            return crearRespuestaFallida("alquiler/crearAlquilerViewFail", "Fechas de inicio y fin obligatorias.");
         }
         if (inicio.isAfter(fin)) {
-            mv.setViewName("alquiler/crearAlquilerViewFail");
-            mv.addObject("error", "La fecha de inicio no puede ser posterior a la de fin.");
-            populateSociosYEmbarcaciones(mv);
-            return mv;
+            return crearRespuestaFallida("alquiler/crearAlquilerViewFail",
+                    "La fecha de inicio no puede ser posterior a la de fin.");
         }
 
         long dias = java.time.temporal.ChronoUnit.DAYS.between(inicio, fin) + 1;
         if (dias <= 0) {
-            mv.setViewName("alquiler/crearAlquilerViewFail");
-            mv.addObject("error", "Número de días inválido.");
-            populateSociosYEmbarcaciones(mv);
-            return mv;
+            return crearRespuestaFallida("alquiler/crearAlquilerViewFail", "Número de días inválido.");
         }
         if (!isDuracionValidaPorTemporada(inicio, dias)) {
-            mv.setViewName("alquiler/crearAlquilerViewFail");
-            mv.addObject("error", "Duración no permitida para la temporada (Oct-Abr: 3 días; May-Sep: 7 o 14 días).");
-            populateSociosYEmbarcaciones(mv);
-            return mv;
+            return crearRespuestaFallida("alquiler/crearAlquilerViewFail",
+                    "Duración no permitida para la temporada (Oct-Abr: 3 días; May-Sep: 7 o 14 días).");
         }
 
         // 3) Comprobar disponibilidad (usa método en AlquilerRepository que cuente
         // solapamientos)
         Integer solapamientos = alquilerRepository.countAlquileresSolapados(matricula, inicio, fin);
         if (solapamientos == null) {
-            mv.setViewName("alquiler/crearAlquilerViewFail.html");
-            mv.addObject("error", "Error comprobando disponibilidad.");
-            populateSociosYEmbarcaciones(mv);
-            return mv;
+            return crearRespuestaFallida("alquiler/crearAlquilerViewFail.html", "Error comprobando disponibilidad.");
         }
         if (solapamientos > 0) {
-            mv.setViewName("alquiler/crearAlquilerViewFail.html");
-            mv.addObject("error", "La embarcación no está disponible en ese rango de fechas.");
-            populateSociosYEmbarcaciones(mv);
-            return mv;
+            return crearRespuestaFallida("alquiler/crearAlquilerViewFail.html",
+                    "La embarcación no está disponible en ese rango de fechas.");
         }
 
         // 4) Comprobar plazas usando AlquilerRepository
         Integer plazas = alquilerRepository.obtenerPlazas(matricula);
         if (plazas == null) {
-            mv.setViewName("alquiler/crearAlquilerViewFail.html");
-            mv.addObject("error", "No se encontró la embarcación.");
-            populateSociosYEmbarcaciones(mv);
-            return mv;
+            return crearRespuestaFallida("alquiler/crearAlquilerViewFail.html", "No se encontró la embarcación.");
         }
         if (numPasajeros > plazas) {
-            mv.setViewName("alquiler/crearAlquilerViewFail.html");
-            mv.addObject("error", "Número de pasajeros supera la capacidad (" + plazas + ").");
-            populateSociosYEmbarcaciones(mv);
-            return mv;
+            return crearRespuestaFallida("alquiler/crearAlquilerViewFail.html",
+                    "Número de pasajeros supera la capacidad (" + plazas + ").");
         }
 
         // 5) Calcular importe y persistir
@@ -175,12 +187,11 @@ public class AñadirAlquilerController {
         // Refactor de nombrado: evitar booleanos ambiguos como ok.
         boolean alquilerGuardado = alquilerRepository.addAlquiler(newAlquiler);
         if (!alquilerGuardado) {
-            mv.setViewName("alquiler/crearAlquilerViewFail.html");
-            mv.addObject("error", "Error guardando el alquiler en la base de datos.");
-            populateSociosYEmbarcaciones(mv);
-            return mv;
+            return crearRespuestaFallida("alquiler/crearAlquilerViewFail.html",
+                    "Error guardando el alquiler en la base de datos.");
         }
 
+        ModelAndView mv = new ModelAndView();
         mv.setViewName("alquiler/crearAlquilerViewSuccess.html");
         mv.addObject("success", "Alquiler creado correctamente. Importe: " + importe + " €");
         return mv;
@@ -199,31 +210,8 @@ public class AñadirAlquilerController {
      * @param mv modelo a poblar
      */
     private void populateSociosYEmbarcaciones(ModelAndView mv) {
-        // Socios->listado de socios
-        try {
-            java.util.List<?> socios = socioRepository.obtenerSociosConPatron();
-            mv.addObject("socios", socios);
-        } catch (Exception e) {
-            System.err.println("Aviso: no se pudieron cargar los socios tras el POST: " + e.getMessage());
-            mv.addObject("socios", new ArrayList<>());
-        }
-
-        // Embarcaciones: combinar por tipo->listado de embarcaciones (matriculas)
-        try {
-            List<Embarcacion> embarcaciones = new ArrayList<>();
-            for (TipoEmbarcacion t : TipoEmbarcacion.values()) {
-                if (t == TipoEmbarcacion.NONE)
-                    continue;
-                List<Embarcacion> embarcacionesPorTipo = embarcacionRepository.listarPorTipo(t);
-                if (embarcacionesPorTipo != null)
-                    embarcaciones.addAll(embarcacionesPorTipo);
-            }
-            mv.addObject("embarcaciones", embarcaciones);
-        } catch (Exception e) {
-            System.err.println("Aviso: no se pudieron cargar las embarcaciones tras el POST: " + e.getMessage());
-            mv.addObject("embarcaciones", new ArrayList<Embarcacion>());
-            mv.addObject("matriculas", new ArrayList<String>());
-        }
+        cargarSocios(mv);
+        cargarEmbarcaciones(mv);
     }
 
     // Método auxiliar para validar duración por temporada

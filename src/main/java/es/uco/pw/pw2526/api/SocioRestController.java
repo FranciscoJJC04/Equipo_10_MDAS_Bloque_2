@@ -35,6 +35,31 @@ public class SocioRestController {
         this.socioRepository.setSQLQueriesFileName(sqlQueriesFileName);
     }
 
+    private void aplicarActualizacionesParciales(Socio currentSocio, Socio requestSocio) {
+        if (requestSocio.getNombre() != null) {
+            currentSocio.setNombre(requestSocio.getNombre());
+        }
+        if (requestSocio.getApellidos() != null) {
+            currentSocio.setApellidos(requestSocio.getApellidos());
+        }
+        if (requestSocio.getFechaNacimiento() != null) {
+            currentSocio.setFechaNacimiento(requestSocio.getFechaNacimiento());
+        }
+        if (requestSocio.getDireccion() != null) {
+            currentSocio.setDireccion(requestSocio.getDireccion());
+        }
+        if (requestSocio.getCuotaInscripcion() != 0.0) {
+            currentSocio.setCuotaInscripcion(requestSocio.getCuotaInscripcion());
+        }
+        if (requestSocio.getFechaInscripcion() != null) {
+            currentSocio.setFechaInscripcion(requestSocio.getFechaInscripcion());
+        }
+        if (requestSocio.getIdInscripcion() != 0) {
+            currentSocio.setIdInscripcion(requestSocio.getIdInscripcion());
+        }
+        currentSocio.setTituloPatron(requestSocio.isTituloPatron());
+    }
+
     @GetMapping
     public ResponseEntity<List<Socio>> obtenerSociosApi() {
         List<Socio> socios = socioRepository.obtenerSocios();
@@ -106,39 +131,18 @@ public class SocioRestController {
     public ResponseEntity<Socio> patchSocio(@PathVariable String dni, @RequestBody Socio requestSocio) {
         try {
             Socio currentSocio = this.socioRepository.findByDni(dni);
-            if (currentSocio != null) {
-                requestSocio.setDni(currentSocio.getDni());
-
-                if (requestSocio.getNombre() != null) {
-                    currentSocio.setNombre(requestSocio.getNombre());
-                }
-                if (requestSocio.getApellidos() != null) {
-                    currentSocio.setApellidos(requestSocio.getApellidos());
-                }
-                if (requestSocio.getFechaNacimiento() != null) {
-                    currentSocio.setFechaNacimiento(requestSocio.getFechaNacimiento());
-                }
-                if (requestSocio.getDireccion() != null) {
-                    currentSocio.setDireccion(requestSocio.getDireccion());
-                }
-                if (requestSocio.getCuotaInscripcion() != 0.0) {
-                    currentSocio.setCuotaInscripcion(requestSocio.getCuotaInscripcion());
-                }
-                if (requestSocio.getFechaInscripcion() != null) {
-                    currentSocio.setFechaInscripcion(requestSocio.getFechaInscripcion());
-                }
-                if (requestSocio.getIdInscripcion() != 0) {
-                    currentSocio.setIdInscripcion(requestSocio.getIdInscripcion());
-                }
-                currentSocio.setTituloPatron(requestSocio.isTituloPatron());
-
-                boolean socioActualizado = socioRepository.updateSocio(currentSocio);
-                if (socioActualizado) {
-                    return ResponseEntity.ok(currentSocio);
-                }
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(requestSocio);
+            if (currentSocio == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+
+            requestSocio.setDni(currentSocio.getDni());
+            aplicarActualizacionesParciales(currentSocio, requestSocio);
+
+            boolean socioActualizado = socioRepository.updateSocio(currentSocio);
+            if (socioActualizado) {
+                return ResponseEntity.ok(currentSocio);
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(requestSocio);
         } catch (Exception e) {
             System.err.println("Error en PATCH socio: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(requestSocio);

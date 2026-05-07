@@ -35,24 +35,27 @@ class AsignarPatronaEmbarcacionController {
         this.patronRepository.setSQLQueriesFileName(sqlQueriesFileName);
     }
 
+    private List<Embarcacion> obtenerEmbarcacionesPorTipo() {
+        List<Embarcacion> embarcaciones = new ArrayList<>();
+        for (TipoEmbarcacion t : TipoEmbarcacion.values()) {
+            if (t == TipoEmbarcacion.NONE) {
+                continue;
+            }
+            List<Embarcacion> list = embarcacionRepository.listarPorTipo(t);
+            if (list != null) {
+                embarcaciones.addAll(list);
+            }
+        }
+        return embarcaciones;
+    }
+
     @GetMapping("/AsignarPatronEmbarcacion")
     public ModelAndView getAsignarPatronEmbarcacionView() {
         this.modelAndView.setViewName("embarcaciones/AsignarPatronEmbarcacionView");
         this.modelAndView.addObject("asignacion", new Embarcacion());
-        // añadir listas de patrones y embarcaciones al modelo
         List<?> patrones = patronRepository.obtenerPatrones();
         this.modelAndView.addObject("patrones", patrones);
-
-        // listar todas las embarcaciones por tipo y combinarlas
-        List<Embarcacion> embarcaciones = new ArrayList<>();
-        for (TipoEmbarcacion t : TipoEmbarcacion.values()) {
-            if (t == TipoEmbarcacion.NONE)
-                continue;
-            List<Embarcacion> list = embarcacionRepository.listarPorTipo(t);
-            if (list != null)
-                embarcaciones.addAll(list);
-        }
-        this.modelAndView.addObject("embarcaciones", embarcaciones);
+        this.modelAndView.addObject("embarcaciones", obtenerEmbarcacionesPorTipo());
         return modelAndView;
     }
 

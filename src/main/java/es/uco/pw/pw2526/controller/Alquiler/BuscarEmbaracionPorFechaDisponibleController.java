@@ -52,6 +52,30 @@ public class BuscarEmbaracionPorFechaDisponibleController {
         }
     }
 
+    private boolean estaDisponible(Embarcacion embarcacion, java.time.LocalDate inicio, java.time.LocalDate fin) {
+        Integer solapamientos = alquilerRepository.countAlquileresSolapados(embarcacion.getMatricula(), inicio, fin);
+        return solapamientos != null && solapamientos == 0;
+    }
+
+    private List<Embarcacion> obtenerEmbarcacionesDisponibles(java.time.LocalDate inicio, java.time.LocalDate fin) {
+        List<Embarcacion> disponibles = new java.util.ArrayList<>();
+        for (TipoEmbarcacion tipo : TipoEmbarcacion.values()) {
+            if (tipo == TipoEmbarcacion.NONE) {
+                continue;
+            }
+            List<Embarcacion> lista = embarcacionRepository.listarPorTipo(tipo);
+            if (lista == null) {
+                continue;
+            }
+            for (Embarcacion embarcacion : lista) {
+                if (estaDisponible(embarcacion, inicio, fin)) {
+                    disponibles.add(embarcacion);
+                }
+            }
+        }
+        return disponibles;
+    }
+
     @GetMapping("/ListarEmbarcacionesDisponiblesPorFecha")
     /**
      * Maneja la petición GET para listar embarcaciones disponibles en el
@@ -81,28 +105,7 @@ public class BuscarEmbaracionPorFechaDisponibleController {
             return mv;
         }
 
-        java.util.List<Embarcacion> disponibles = new java.util.ArrayList<>();
-
-        // Recorremos cada tipo y pedimos embarcaciones por tipo (según tu petición)
-        for (TipoEmbarcacion tipo : TipoEmbarcacion.values()) {
-            if (tipo == TipoEmbarcacion.NONE)
-                continue;
-            java.util.List<Embarcacion> lista = embarcacionRepository.listarPorTipo(tipo);
-            if (lista == null)
-                continue;
-            for (Embarcacion e : lista) {
-                Integer solapamientos = alquilerRepository.countAlquileresSolapados(e.getMatricula(), inicio, fin);
-                if (solapamientos == null) {
-                    // error comprobando disponibilidad -> omitimos esta embarcación
-                    continue;
-                }
-                if (solapamientos == 0) {
-                    disponibles.add(e);
-                }
-            }
-        }
-
-        mv.addObject("embarcaciones", disponibles);
+        mv.addObject("embarcaciones", obtenerEmbarcacionesDisponibles(inicio, fin));
         mv.addObject("inicio", inicio);
         mv.addObject("fin", fin);
         return mv;
