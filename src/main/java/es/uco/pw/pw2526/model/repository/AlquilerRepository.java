@@ -14,31 +14,22 @@ import org.springframework.stereotype.Repository;
 
 import es.uco.pw.pw2526.model.domain.alquiler.Alquiler;
 
-
-
-/** Repositorio mínimo para insertar alquileres (solo creación por ahora) */
 @Repository
-public class AlquilerRepository extends AbstractRepository 
-{
+public class AlquilerRepository extends AbstractRepository {
 
-    public AlquilerRepository(JdbcTemplate jdbcTemplate) 
-    {
+    public AlquilerRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         this.setSQLQueriesFileName("db/sql.properties");
     }
 
-    public boolean addAlquiler(Alquiler alquiler) 
-    {
-        try 
-        {
+    public boolean addAlquiler(Alquiler alquiler) {
+        try {
             String insertAlquilerQuery = sqlQueries.getProperty("insertar-alquiler");
-            if (insertAlquilerQuery == null) 
-            {
+            if (insertAlquilerQuery == null) {
                 System.err.println("No se encontró la query 'insertar-alquiler' en sql.properties");
                 return false;
             }
-            
-            // Calcular importe total: 20€ por persona y por día (días inclusivos)
+
             long dias = java.time.temporal.ChronoUnit.DAYS.between(alquiler.getFechaInicio(), alquiler.getFechaFin()) + 1;
             if (dias <= 0) {
                 System.err.println(" Número de días inválido: " + dias);
@@ -56,13 +47,9 @@ public class AlquilerRepository extends AbstractRepository
             alquiler.getDniSocio(),
             alquiler.getFechaInicio(),
             alquiler.getFechaFin());
-                  
 
             return insertedRows > 0;
-
-        } 
-        catch (DataAccessException e) 
-        {
+        } catch (DataAccessException e) {
             System.err.println("Error al insertar alquiler: " + e.getMessage());
             return false;
         }

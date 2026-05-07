@@ -12,10 +12,8 @@ import es.uco.pw.pw2526.model.repository.EmbarcacionRepository;
 
 /**
  * Controlador encargado de gestionar la funcionalidad de añadir nuevas embarcaciones.
-ador encargado de gestionar la funcionalidad de añadir nuevas embarcaciones.
- * <p>Proporcion * <p>Proporciona la vista de formulario para introducira la vista de formulario para introducir datos de una embarcación
- * y mane datos de una embarcación
- * y maneja la inserción enja la inserción en el repositorio. el repositorio.</p>
+ * <p>Proporciona la vista de formulario para introducir datos de una embarcación
+ * y maneja la inserción en el repositorio.</p>
  */
 @Controller
 public class AñadirEmbarcacionController {

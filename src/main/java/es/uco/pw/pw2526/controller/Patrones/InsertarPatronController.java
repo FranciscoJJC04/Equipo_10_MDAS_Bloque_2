@@ -15,8 +15,7 @@ import es.uco.pw.pw2526.model.repository.PatronRepository;
  * formulario de inserción y procesar la creación de un nuevo patrón.
  */
 @Controller
-public class InsertarPatronController 
-{
+public class InsertarPatronController {
 
     private ModelAndView modelAndView = new ModelAndView();
     PatronRepository patronRepository;
@@ -36,16 +35,11 @@ public class InsertarPatronController
 
     @PostMapping("/addPatron")
     public ModelAndView addPatron(@ModelAttribute Patron newPatron) {
-
-        // Comprobación previa por DNI: si ya existe, no intentamos insertar.
         if (newPatron == null || newPatron.getDniPatron() == null || newPatron.getDniPatron().isBlank()) {
-            // Mantener la misma lógica: delegar en addPatron (que también valida),
-            // pero aquí evitamos llamadas innecesarias al repositorio cuando el DNI es inválido.
             boolean success = patronRepository.addPatron(newPatron);
             return buildResponse(success, newPatron);
         }
 
-        // Si el repositorio indica que ya existe un patrón con ese DNI, fallamos sin insertar.
         if (patronRepository.existsByDni(newPatron.getDniPatron())) {
             return buildResponse(false, newPatron);
         }

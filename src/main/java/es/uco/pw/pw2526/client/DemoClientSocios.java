@@ -40,9 +40,7 @@ public class DemoClientSocios {
      * - Listar inscripciones familiares.
      * - Listar inscripciones individuales.
      */
-	private static void sendGetRequests()
-	{
-		// Refactor Semana 1 (nombrado): nombres de variables orientados al dominio y su contenido.
+private static void sendGetRequests() {
 		RestTemplate restTemplate = new RestTemplate();
 		String baseApiUrl = "http://localhost:8080";
 
@@ -72,8 +70,7 @@ public class DemoClientSocios {
 		);
 		System.out.println("==== REQUEST 3: GET inscripción por DNI ====");
 		System.out.println(inscripcion);
-		} catch (HttpClientErrorException e) 
-		{
+		} catch (HttpClientErrorException e) {
 			System.out.println("No se encontró inscripción para el DNI: " + dniSocioConsulta);
 			System.out.println("Error: " + e.getResponseBodyAsString());
 		}

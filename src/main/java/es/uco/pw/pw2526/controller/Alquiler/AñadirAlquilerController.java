@@ -19,7 +19,6 @@ import es.uco.pw.pw2526.model.repository.AlquilerRepository;
 import es.uco.pw.pw2526.model.repository.EmbarcacionRepository;
 import es.uco.pw.pw2526.model.repository.SocioRepository;
 
-@Controller
 /**
  * Controlador responsable de gestionar la creación de alquileres.
  * <p>
@@ -29,15 +28,12 @@ import es.uco.pw.pw2526.model.repository.SocioRepository;
  * {@link AlquilerRepository}.
  * </p>
  */
+@Controller
 public class AñadirAlquilerController {
 
-    /** Reutiliza un ModelAndView para operaciones sencillas sobre vistas. */
     private ModelAndView modelAndView = new ModelAndView();
-    /** Repositorio para operaciones sobre alquileres. */
     private AlquilerRepository alquilerRepository;
-    /** Repositorio para operaciones sobre embarcaciones. */
     private EmbarcacionRepository embarcacionRepository;
-    /** Repositorio para operaciones sobre socios. */
     private SocioRepository socioRepository;
 
     /**

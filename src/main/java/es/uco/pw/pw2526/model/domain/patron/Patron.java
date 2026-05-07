@@ -33,42 +33,34 @@ public class Patron {
         this.fechaNacimiento = fechaNacimiento;
     }
 
-    /** Devuelve el identificador nacional del patrón. */
     public String getDniPatron() {
         return dniPatron;
     }
 
-    /** Establece el identificador nacional del patrón. */
     public void setDniPatron(String dniPatron) {
         this.dniPatron = dniPatron;
     }
 
-    /** Devuelve el nombre. */
     public String getNombre() {
         return nombre;
     }
 
-    /** Establece el nombre. */
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
 
-    /** Devuelve el apellido. */
     public String getApellido() {
         return apellido;
     }
 
-    /** Establece el apellido. */
     public void setApellido(String apellido) {
         this.apellido = apellido;
     }
 
-    /** Devuelve la fecha de nacimiento. */
     public LocalDate getFechaNacimiento() {
         return fechaNacimiento;
     }
 
-    /** Establece la fecha de nacimiento. */
     public void setFechaNacimiento(LocalDate fechaNacimiento) {
         this.fechaNacimiento = fechaNacimiento;
     }

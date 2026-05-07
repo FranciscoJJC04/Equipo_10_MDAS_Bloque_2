@@ -35,19 +35,16 @@ public class InsertarSocioController {
 
     @PostMapping("/addSocio")
     public ModelAndView addSocio(@ModelAttribute Socio newSocio) {
-        // Comprobación de validación de datos
         if (newSocio == null || newSocio.getDni() == null || newSocio.getDni().isBlank()) {
-            return buildResponse(false, newSocio); // Enviar respuesta con error
+            return buildResponse(false, newSocio);
         }
 
-        // Verificar si el DNI ya existe en la base de datos
         if (socioRepository.existsByDni(newSocio.getDni())) {
-            return buildResponse(false, newSocio); // Si existe, devolver error
+            return buildResponse(false, newSocio);
         }
 
-        // Intentar insertar el nuevo socio
         boolean success = socioRepository.addSocio(newSocio);
-        return buildResponse(success, newSocio); // Responder según si la inserción fue exitosa
+        return buildResponse(success, newSocio);
     }
 
     private ModelAndView buildResponse(boolean success, Socio socio) {

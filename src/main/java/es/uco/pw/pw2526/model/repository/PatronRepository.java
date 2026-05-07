@@ -66,7 +66,7 @@ public class PatronRepository extends AbstractRepository {
                 return false;
             }
         } catch (DataAccessException exception) {
-            System.err.println("Unable to insert patrons in the database");
+            System.err.println("Error: No se pudo insertar el patrón en la base de datos.");
             return false;
         }
     }

@@ -26,11 +26,10 @@ import org.springframework.web.bind.annotation.RequestBody;
  */
 @RestController()
 @RequestMapping(path="/api/socio", produces="application/json")
-public class SocioRestController 
-{
+public class SocioRestController {
     SocioRepository socioRepository;
 
-     public SocioRestController(SocioRepository socioRepository){
+    public SocioRestController(SocioRepository socioRepository) {
         this.socioRepository = socioRepository;
         String sqlQueriesFileName = "./src/main/resources/db/sql.properties";
         this.socioRepository.setSQLQueriesFileName(sqlQueriesFileName);

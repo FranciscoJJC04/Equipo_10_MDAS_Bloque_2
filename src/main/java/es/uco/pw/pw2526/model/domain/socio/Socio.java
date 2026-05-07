@@ -46,7 +46,6 @@ public class Socio {
         this.fechaInscripcion = fechaInscripcion;
         this.idInscripcion = idInscripcion;
         this.tipo = tipo;
-        this.tipo=tipo;
     }
 
     public String getDni() {

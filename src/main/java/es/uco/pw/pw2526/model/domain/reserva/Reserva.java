@@ -10,9 +10,7 @@ import java.time.LocalDate;
  * número de pasajeros, importe calculado y una descripción opcional.
  * </p>
  */
-public class Reserva 
-{
-  
+public class Reserva {
     private int id;
     private LocalDate fecha;
     private String dniSocio;      
@@ -26,8 +24,7 @@ public class Reserva
      * Crea una instancia por defecto con valores iniciales neutros.
      * Los campos numéricos se inicializan a 0 y las cadenas a cadena vacía.
      */
-    public Reserva() 
-    {
+    public Reserva() {
         this.id = 0;
         this.fecha = null;
         this.dniSocio = "";
@@ -49,8 +46,7 @@ public class Reserva
      * @param importeTotal importe total de la reserva
      * @param descripcionReserva texto descriptivo opcional
      */
-    public Reserva(int id, LocalDate fecha, String dniSocio, String matricula,int numeroPasajeros,double importeTotal,String descripcionReserva) 
-    {
+    public Reserva(int id, LocalDate fecha, String dniSocio, String matricula, int numeroPasajeros, double importeTotal, String descripcionReserva) {
         this.id = id;
         this.fecha = fecha;
         this.dniSocio = dniSocio;

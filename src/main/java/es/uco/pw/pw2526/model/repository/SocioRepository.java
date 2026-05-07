@@ -38,9 +38,6 @@ public class SocioRepository extends AbstractRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // Aquí se añadiran las funciones para manejar los socios(listar,
-    // añadir,modificar...)
-    // Función Listar Socios
     /**
      * Obtiene la lista de socios básicos (sin información extensiva).
      *
