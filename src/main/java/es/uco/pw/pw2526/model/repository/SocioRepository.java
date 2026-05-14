@@ -510,7 +510,7 @@ public Inscripcion findInscripcionById(Integer id) {
             }
 
             if (existsByDni(socio.getDni())) {
-                System.err.println("⚠️ El socio con DNI " + socio.getDni() + " ya existe.");
+                System.err.println("El socio con DNI " + socio.getDni() + " ya existe.");
                 return false;
             }
 

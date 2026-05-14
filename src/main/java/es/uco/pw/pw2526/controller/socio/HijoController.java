@@ -4,8 +4,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import es.uco.pw.pw2526.facade.GestionFamiliarFacade;
 import es.uco.pw.pw2526.model.domain.socio.Socio;
-import es.uco.pw.pw2526.model.repository.SocioRepository;
 
 /**
  * Controlador encargado de gestionar la adición de hijos a socios existentes.
@@ -15,11 +15,10 @@ import es.uco.pw.pw2526.model.repository.SocioRepository;
 @Controller
 public class HijoController {
 
-    private final SocioRepository socioRepository;
+    private final GestionFamiliarFacade gestionFamiliarFacade;
 
-    public HijoController(SocioRepository socioRepository) {
-        this.socioRepository = socioRepository;
-        this.socioRepository.setSQLQueriesFileName("sql.properties");
+    public HijoController(GestionFamiliarFacade gestionFamiliarFacade) {
+        this.gestionFamiliarFacade = gestionFamiliarFacade;
     }
 
     /** Muestra formulario para añadir hijo */
@@ -36,7 +35,7 @@ public class HijoController {
     public ModelAndView registrarHijo(@RequestParam("dniTitular") String dniTitular,
             @ModelAttribute("hijo") Socio hijo) {
 
-        boolean creado = socioRepository.addHijo(dniTitular, hijo);
+        boolean creado = gestionFamiliarFacade.registrarHijo(dniTitular, hijo);
 
         if (creado) {
             return new ModelAndView("redirect:/gestionFamiliar?dni=" + dniTitular);
