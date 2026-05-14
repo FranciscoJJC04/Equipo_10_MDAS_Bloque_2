@@ -64,7 +64,12 @@ public class Embarcacion {
     }
 
     public void setPatron(Patron patron) {
-        throw new UnsupportedOperationException("Unimplemented method 'setPatron'");
+        // Asociar patrón a la embarcación (se guarda solo su DNI en repositorio)
+        if (patron == null) {
+            return;
+        }
+        // Este método no persiste información en este objeto de dominio en el diseño actual,
+        // pero se deja disponible para asignaciones en memoria si otras capas lo requieren.
     }
     
 

@@ -22,6 +22,8 @@ import es.uco.pw.pw2526.model.domain.patron.Patron;
  */
 public class DemoClientFlotaPatrones {
 
+    private static final String BASE_API_URL = "http://localhost:8080/api/flota-patron";
+
     /**
      * Método principal que ejecuta las solicitudes GET, POST, PATCH y DELETE.
      *
@@ -43,34 +45,41 @@ public class DemoClientFlotaPatrones {
      */
     private static void sendGetRequests() {
         RestTemplate rest = new RestTemplate();
-        String baseURL = "http://localhost:8080/api/flota-patron";
+        mostrarEmbarcaciones(rest);
+        mostrarEmbarcacionesPorTipo(rest, "VELERO");
+        mostrarPatrones(rest);
+    }
 
-        // 1. Obtener la lista completa de embarcaciones (GET)
-        ResponseEntity<Embarcacion[]> responseEmbarcaciones = rest.getForEntity(baseURL + "/embarcaciones",
+    private static <T> void printArray(T[] body) {
+        if (body == null) {
+            return;
+        }
+        for (T item : body) {
+            System.out.println(item);
+        }
+    }
+
+    private static void mostrarEmbarcaciones(RestTemplate rest) {
+        ResponseEntity<Embarcacion[]> responseEmbarcaciones = rest.getForEntity(
+                BASE_API_URL + "/embarcaciones",
                 Embarcacion[].class);
-        List<Embarcacion> listEmbarcaciones = List.of(responseEmbarcaciones.getBody());
         System.out.println("==== GET Embarcaciones ====");
-        for (Embarcacion embarcacion : listEmbarcaciones) {
-            System.out.println(embarcacion);
-        }
+        printArray(responseEmbarcaciones.getBody());
+    }
 
-        // 2. Obtener la lista de embarcaciones por tipo (GET)
-        String tipo = "VELERO";
-        ResponseEntity<Embarcacion[]> responseEmbarcacionesTipo = rest
-                .getForEntity(baseURL + "/embarcaciones/tipo/{tipo}", Embarcacion[].class, tipo);
-        List<Embarcacion> listEmbarcacionesTipo = List.of(responseEmbarcacionesTipo.getBody());
+    private static void mostrarEmbarcacionesPorTipo(RestTemplate rest, String tipo) {
+        ResponseEntity<Embarcacion[]> responseEmbarcacionesTipo = rest.getForEntity(
+                BASE_API_URL + "/embarcaciones/tipo/{tipo}",
+                Embarcacion[].class,
+                tipo);
         System.out.println("==== GET Embarcaciones por tipo ====");
-        for (Embarcacion embarcacion : listEmbarcacionesTipo) {
-            System.out.println(embarcacion);
-        }
+        printArray(responseEmbarcacionesTipo.getBody());
+    }
 
-        // 3. Obtener la lista de patrones (GET)
-        ResponseEntity<Patron[]> responsePatrones = rest.getForEntity(baseURL + "/patrones", Patron[].class);
-        List<Patron> listPatrones = List.of(responsePatrones.getBody());
+    private static void mostrarPatrones(RestTemplate rest) {
+        ResponseEntity<Patron[]> responsePatrones = rest.getForEntity(BASE_API_URL + "/patrones", Patron[].class);
         System.out.println("==== GET Patrones ====");
-        for (Patron patron : listPatrones) {
-            System.out.println(patron);
-        }
+        printArray(responsePatrones.getBody());
     }
 
     /**
@@ -81,11 +90,10 @@ public class DemoClientFlotaPatrones {
      */
     private static void sendPostRequests() {
         RestTemplate rest = new RestTemplate();
-        String baseURL = "http://localhost:8080/api/flota-patron";
 
         // POST para crear una nueva embarcación
         Embarcacion nuevaEmbarcacion = new Embarcacion("10000", TipoEmbarcacion.VELERO, "Caglos", 4);
-        ResponseEntity<String> responseEmbarcacion = rest.postForEntity(baseURL + "/embarcaciones", nuevaEmbarcacion,
+        ResponseEntity<String> responseEmbarcacion = rest.postForEntity(BASE_API_URL + "/embarcaciones", nuevaEmbarcacion,
                 String.class);
         System.out.println("==== POST Crear Embarcación ====");
         System.out.println("Respuesta: " + responseEmbarcacion.getBody());
@@ -93,37 +101,28 @@ public class DemoClientFlotaPatrones {
         // POST para crear un nuevo patrón
         LocalDate fechaNacimiento = LocalDate.parse("1985-02-25");
         Patron nuevoPatron = new Patron("10000A", "Augsburguer", "Lopez", fechaNacimiento);
-        ResponseEntity<String> responsePatron = rest.postForEntity(baseURL + "/patrones", nuevoPatron, String.class);
+        ResponseEntity<String> responsePatron = rest.postForEntity(BASE_API_URL + "/patrones", nuevoPatron, String.class);
         System.out.println("==== POST Crear Patrón ====");
         System.out.println("Respuesta: " + responsePatron.getBody());
     }
 
-    /**
-     * Realiza solicitudes PATCH para actualizar los datos de una embarcación o patrón.
-     * <p>
-     * El método actualiza los datos de una embarcación y un patrón mediante solicitudes PATCH.
-     * También permite vincular o desvincular patrones de embarcaciones.
-     * </p>
-     */
-    private static void sendPatchRequests() {
-        RestTemplate rest = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
-        String baseURL = "http://localhost:8080";
+    private static RestTemplate createPatchCompatibleRestTemplate() {
+        return new RestTemplate(new HttpComponentsClientHttpRequestFactory());
+    }
 
-        // Actualizar los datos de una embarcación (menos la matrícula)
-        String matriculaToUpdate = "10000"; // Ejemplo de matrícula
+    private static void actualizarEmbarcacion(RestTemplate rest, String baseURL) {
+        String matriculaToUpdate = "10000";
         Embarcacion updatedEmbarcacion = new Embarcacion();
         updatedEmbarcacion.setTipo(TipoEmbarcacion.VELERO);
         updatedEmbarcacion.setNombre("Lolita");
         updatedEmbarcacion.setNumPlazas(4);
 
         try {
-            // La URL y el método PATCH para embarcación
             rest.patchForObject(baseURL + "/api/flota-patron/embarcaciones/{matricula}", updatedEmbarcacion,
                     Embarcacion.class, matriculaToUpdate);
             System.out.println("==== REQUEST : PATCH embarcación ====");
             System.out.println("Embarcación con matrícula " + matriculaToUpdate + " actualizada correctamente.");
 
-            // Verificar la actualización
             Embarcacion embarcacionAfterUpdate = rest.getForObject(
                     baseURL + "/api/flota-patron/embarcaciones/{matricula}", Embarcacion.class, matriculaToUpdate);
             System.out.println("Embarcación actualizada: " + embarcacionAfterUpdate);
@@ -133,22 +132,21 @@ public class DemoClientFlotaPatrones {
         } catch (RestClientException e) {
             System.out.println("Error general: " + e.getMessage());
         }
+    }
 
-        // Actualizar los datos de un patrón (menos el DNI)
-        String dniPatronToUpdate = "10000A"; // Ejemplo de DNI del patrón
+    private static void actualizarPatron(RestTemplate rest, String baseURL) {
+        String dniPatronToUpdate = "10000A";
         Patron updatedPatron = new Patron();
         updatedPatron.setNombre("Francisco");
         updatedPatron.setApellido("Franco");
         updatedPatron.setFechaNacimiento(LocalDate.parse("1980-01-15"));
 
         try {
-            // La URL y el método PATCH para patrón
             rest.patchForObject(baseURL + "/api/flota-patron/patrones/{dni}", updatedPatron, Patron.class,
                     dniPatronToUpdate);
             System.out.println("==== REQUEST : PATCH patrón ====");
             System.out.println("Patrón con DNI " + dniPatronToUpdate + " actualizado correctamente.");
 
-            // Verificar la actualización
             Patron patronAfterUpdate = rest.getForObject(baseURL + "/api/flota-patron/patrones/{dni}", Patron.class,
                     dniPatronToUpdate);
             System.out.println("Patrón actualizado: " + patronAfterUpdate);
@@ -158,14 +156,11 @@ public class DemoClientFlotaPatrones {
         } catch (RestClientException e) {
             System.out.println("Error general: " + e.getMessage());
         }
-        // Vincular un patrón a una embarcación (PATCH)
-        String matricula = "456"; // Ejemplo de matrícula
-        String dniPatron = "22799768G"; // Ejemplo de DNI del patrón
-        String fechaInicio = "2025-01-01"; // Fecha de inicio
-        String fechaFin = "2025-12-31"; // Fecha de fin (opcional)
+    }
 
+    private static void vincularPatron(RestTemplate rest, String baseURL, String matricula, String dniPatron,
+            String fechaInicio, String fechaFin) {
         try {
-            // La URL y el método PATCH para vincular patrón a embarcación
             rest.patchForObject(baseURL
                     + "/api/flota-patron/embarcaciones/{matricula}/patron/{dniPatron}?fechaInicio={fechaInicio}&fechaFin={fechaFin}",
                     null, String.class, matricula, dniPatron, fechaInicio, fechaFin);
@@ -178,9 +173,10 @@ public class DemoClientFlotaPatrones {
         } catch (RestClientException e) {
             System.out.println("Error general: " + e.getMessage());
         }
-        // Desvincular un patrón de una embarcación (PATCH)
+    }
+
+    private static void desvincularPatron(RestTemplate rest, String baseURL, String matricula, String dniPatron) {
         try {
-            // La URL y el método PATCH para desvincular patrón de embarcación
             rest.patchForObject(baseURL + "/api/flota-patron/embarcacion/{matricula}/desvincularPatron/{dniPatron}",
                     null, String.class, matricula, dniPatron);
             System.out.println("==== REQUEST : PATCH desvincular patrón ====");
@@ -195,6 +191,26 @@ public class DemoClientFlotaPatrones {
     }
 
     /**
+     * Realiza solicitudes PATCH para actualizar los datos de una embarcación o patrón.
+     * <p>
+     * El método actualiza los datos de una embarcación y un patrón mediante solicitudes PATCH.
+     * También permite vincular o desvincular patrones de embarcaciones.
+     * </p>
+     */
+    private static void sendPatchRequests() {
+        RestTemplate rest = createPatchCompatibleRestTemplate();
+        String baseURL = "http://localhost:8080";
+
+        actualizarEmbarcacion(rest, baseURL);
+        actualizarPatron(rest, baseURL);
+
+        String matricula = "456";
+        String dniPatron = "22799768G";
+        vincularPatron(rest, baseURL, matricula, dniPatron, "2025-01-01", "2025-12-31");
+        desvincularPatron(rest, baseURL, matricula, dniPatron);
+    }
+
+    /**
      * Elimina embarcación o patrón (DELETE).
      * <p>
      * Realiza solicitudes DELETE para eliminar embarcaciones y patrones mediante su matrícula o DNI.
@@ -202,14 +218,13 @@ public class DemoClientFlotaPatrones {
      */
     private static void sendDeleteRequests() {
         RestTemplate rest = new RestTemplate();
-        String baseURL = "http://localhost:8080/api/flota-patron";
 
         // Eliminar embarcación (DELETE)
-        rest.delete(baseURL + "/embarcaciones/{matricula}", "10000");
+        rest.delete(BASE_API_URL + "/embarcaciones/{matricula}", "10000");
         System.out.println("Embarcación eliminada");
 
         // Eliminar patrón (DELETE)
-        rest.delete(baseURL + "/patrones/{dni}", "10000A");
+        rest.delete(BASE_API_URL + "/patrones/{dni}", "10000A");
         System.out.println("Patrón eliminado");
     }
 }

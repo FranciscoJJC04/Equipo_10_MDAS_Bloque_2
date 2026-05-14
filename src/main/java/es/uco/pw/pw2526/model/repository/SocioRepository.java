@@ -38,6 +38,122 @@ public class SocioRepository extends AbstractRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    private Socio mapSocio(ResultSet rs, boolean incluirCuota, boolean incluirIdInscripcion) throws SQLException {
+        Socio socio = new Socio();
+        socio.setDni(rs.getString("dni"));
+        socio.setNombre(rs.getString("nombre"));
+        socio.setApellidos(rs.getString("apellidos"));
+        java.sql.Date fechaNacimiento = rs.getDate("fecha_nacimiento");
+        if (fechaNacimiento != null) {
+            socio.setFechaNacimiento(fechaNacimiento.toLocalDate());
+        }
+        socio.setDireccion(rs.getString("direccion"));
+        socio.setTituloPatron(rs.getBoolean("titulo_patron"));
+        if (incluirCuota) {
+            socio.setCuotaInscripcion(rs.getDouble("cuota_inscripcion"));
+        }
+        java.sql.Date fechaInscripcion = rs.getDate("fecha_inscripcion");
+        if (fechaInscripcion != null) {
+            socio.setFechaInscripcion(fechaInscripcion.toLocalDate());
+        }
+        if (incluirIdInscripcion) {
+            socio.setIdInscripcion(rs.getInt("id_inscripcion"));
+        }
+        return socio;
+    }
+
+    private TipoInscripcion parseTipoInscripcion(String valor, TipoInscripcion valorDefecto) {
+        if (valor == null) {
+            return valorDefecto;
+        }
+        String normalizado = valor.trim().toUpperCase();
+        try {
+            return TipoInscripcion.valueOf(normalizado);
+        } catch (IllegalArgumentException ex) {
+            for (TipoInscripcion tipoInscripcion : TipoInscripcion.values()) {
+                if (tipoInscripcion.name().equalsIgnoreCase(valor.trim())) {
+                    return tipoInscripcion;
+                }
+            }
+            return valorDefecto;
+        }
+    }
+
+    private Inscripcion mapInscripcion(ResultSet rs, TipoInscripcion valorDefecto) throws SQLException {
+        Inscripcion inscripcion = new Inscripcion();
+        inscripcion.setId(rs.getInt("id"));
+        inscripcion.setTipo(parseTipoInscripcion(rs.getString("tipo"), valorDefecto));
+        return inscripcion;
+    }
+
+    private boolean validarSocioFamiliarNuevo(Socio socio, String etiqueta) {
+        if (socio == null || socio.getDni() == null || socio.getDni().isBlank()) {
+            System.err.println("El " + etiqueta + " es nulo o tiene un DNI vacío");
+            return false;
+        }
+        if (existsByDni(socio.getDni())) {
+            System.err.println("El " + etiqueta + " con DNI " + socio.getDni() + " ya existe.");
+            return false;
+        }
+        return true;
+    }
+
+    private void completarDatosSocioFamiliar(Socio socio) {
+        if (socio.getFechaNacimiento() == null) {
+            socio.setFechaNacimiento(java.time.LocalDate.now());
+        }
+        if (socio.getFechaInscripcion() == null) {
+            socio.setFechaInscripcion(java.time.LocalDate.now());
+        }
+        if (socio.getDireccion() == null || socio.getDireccion().isBlank()) {
+            socio.setDireccion("Sin especificar");
+        }
+    }
+
+    private boolean insertarSocioConCuota(Socio socio, double cuotaInscripcion) {
+        String query = sqlQueries.getProperty("insertar-socio");
+        if (query == null) {
+            System.err.println("No se encontró la query 'insertar-socio'");
+            return false;
+        }
+
+        int resultado = jdbcTemplate.update(query,
+                socio.getDni(),
+                socio.getNombre(),
+                socio.getApellidos(),
+                socio.getFechaNacimiento(),
+                socio.getDireccion(),
+                socio.isTituloPatron(),
+                socio.getIdInscripcion(),
+                cuotaInscripcion,
+                socio.getFechaInscripcion());
+        return resultado > 0;
+    }
+
+    private List<Socio> obtenerSociosPorQuery(String queryKey, boolean incluirCuota, boolean incluirIdInscripcion,
+            String mensajeError) {
+        try {
+            String query = sqlQueries.getProperty(queryKey);
+            if (query == null) {
+                return null;
+            }
+            return jdbcTemplate.query(query, (rs, rowNumber) -> mapSocio(rs, incluirCuota, incluirIdInscripcion));
+        } catch (DataAccessException exception) {
+            System.err.println(mensajeError + exception.getMessage());
+            exception.printStackTrace();
+            return null;
+        }
+    }
+
+    private boolean addConyugeConInscripcion(int idInscripcion, Socio conyuge) {
+        if (!validarSocioFamiliarNuevo(conyuge, "cónyuge")) {
+            return false;
+        }
+        conyuge.setIdInscripcion(idInscripcion);
+        completarDatosSocioFamiliar(conyuge);
+        return insertarSocioConCuota(conyuge, 250.00);
+    }
+
     /**
      * Obtiene la lista de socios básicos (sin información extensiva).
      *
@@ -45,40 +161,7 @@ public class SocioRepository extends AbstractRepository {
      *         si la consulta no está disponible o ocurre un error.
      */
     public List<Socio> obtenerSocios() {
-        try {
-            String query = sqlQueries.getProperty("listar-socios");
-            if (query != null) {
-                List<Socio> result = jdbcTemplate.query(query, new RowMapper<Socio>() {
-                    public Socio mapRow(ResultSet rs, int rowNumber) throws SQLException {
-                        Socio s = new Socio();
-                        s.setDni(rs.getString("dni"));
-                        s.setNombre(rs.getString("nombre"));
-                        s.setApellidos(rs.getString("apellidos"));
-                        java.sql.Date fechaNacimiento = rs.getDate("fecha_nacimiento");
-                        if (fechaNacimiento != null) {
-                            s.setFechaNacimiento(fechaNacimiento.toLocalDate());
-                        }
-                        s.setDireccion(rs.getString("direccion"));
-                        s.setTituloPatron(rs.getBoolean("titulo_patron"));
-                        s.setCuotaInscripcion(rs.getDouble("cuota_inscripcion"));
-                        java.sql.Date fechaInscripcion = rs.getDate("fecha_inscripcion");
-                        if (fechaInscripcion != null) {
-                            s.setFechaInscripcion(fechaInscripcion.toLocalDate());
-                        }
-                        s.setIdInscripcion(rs.getInt("id_inscripcion"));
-                        return s;
-                    };
-                });
-                return result;
-            }
-
-            else
-                return null;
-        } catch (DataAccessException exception) {
-            System.err.println("Unable to find socios. Error: " + exception.getMessage());
-            exception.printStackTrace();
-            return null;
-        }
+        return obtenerSociosPorQuery("listar-socios", true, true, "Unable to find socios. Error: ");
     }
 
     /**
@@ -87,38 +170,11 @@ public class SocioRepository extends AbstractRepository {
      * @return lista de {@link Socio} o {@code null} en caso de error.
      */
     public List<Socio> obtenerSociosSinPatron() {
-        try {
-            String query = sqlQueries.getProperty("listar-socios-sin-patron");
-            if (query != null) {
-                List<Socio> result = jdbcTemplate.query(query, new RowMapper<Socio>() {
-                    public Socio mapRow(ResultSet rs, int rowNumber) throws SQLException {
-                        Socio s = new Socio();
-                        s.setDni(rs.getString("dni"));
-                        s.setNombre(rs.getString("nombre"));
-                        s.setApellidos(rs.getString("apellidos"));
-                        java.sql.Date fechaNacimiento = rs.getDate("fecha_nacimiento");
-                        if (fechaNacimiento != null) {
-                            s.setFechaNacimiento(fechaNacimiento.toLocalDate());
-                        }
-                        s.setDireccion(rs.getString("direccion"));
-                        s.setTituloPatron(rs.getBoolean("titulo_patron"));
-                        java.sql.Date fechaInscripcion = rs.getDate("fecha_inscripcion");
-                        if (fechaInscripcion != null) {
-                            s.setFechaInscripcion(fechaInscripcion.toLocalDate());
-                        }
-                        return s;
-                    };
-                });
-                return result;
-            }
-
-            else
-                return null;
-        } catch (DataAccessException exception) {
-            System.err.println("Unable to find socios without patron title. Error: " + exception.getMessage());
-            exception.printStackTrace();
-            return null;
-        }
+        return obtenerSociosPorQuery(
+                "listar-socios-sin-patron",
+                false,
+                false,
+                "Unable to find socios without patron title. Error: ");
     }
 
     /**
@@ -127,38 +183,11 @@ public class SocioRepository extends AbstractRepository {
      * @return lista de {@link Socio} o {@code null} en caso de error.
      */
     public List<Socio> obtenerSociosConPatron() {
-        try {
-            String query = sqlQueries.getProperty("listar-socios-con-patron");
-            if (query != null) {
-                List<Socio> result = jdbcTemplate.query(query, new RowMapper<Socio>() {
-                    public Socio mapRow(ResultSet rs, int rowNumber) throws SQLException {
-                        Socio s = new Socio();
-                        s.setDni(rs.getString("dni"));
-                        s.setNombre(rs.getString("nombre"));
-                        s.setApellidos(rs.getString("apellidos"));
-                        java.sql.Date fechaNacimiento = rs.getDate("fecha_nacimiento");
-                        if (fechaNacimiento != null) {
-                            s.setFechaNacimiento(fechaNacimiento.toLocalDate());
-                        }
-                        s.setDireccion(rs.getString("direccion"));
-                        s.setTituloPatron(rs.getBoolean("titulo_patron"));
-                        java.sql.Date fechaInscripcion = rs.getDate("fecha_inscripcion");
-                        if (fechaInscripcion != null) {
-                            s.setFechaInscripcion(fechaInscripcion.toLocalDate());
-                        }
-                        return s;
-                    };
-                });
-                return result;
-            }
-
-            else
-                return null;
-        } catch (DataAccessException exception) {
-            System.err.println("Unable to find socios with patron title. Error: " + exception.getMessage());
-            exception.printStackTrace();
-            return null;
-        }
+        return obtenerSociosPorQuery(
+                "listar-socios-con-patron",
+                false,
+                false,
+                "Unable to find socios with patron title. Error: ");
     }
 
     /**
@@ -191,38 +220,14 @@ public List<Inscripcion> obtenerInscripciones() {
     try {
         String query = sqlQueries.getProperty("listar-inscripciones");
         if (query != null) {
-            List<Inscripcion> result = jdbcTemplate.query(query, new RowMapper<Inscripcion>() {
-                @Override
-                public Inscripcion mapRow(ResultSet rs, int rowNumber) throws SQLException {
-                    Inscripcion ins = new Inscripcion();
-                    ins.setId(rs.getInt("id"));
-                    String tipoStr = rs.getString("tipo");
-                    if (tipoStr != null) {
-                        try {
-                            ins.setTipo(TipoInscripcion.valueOf(tipoStr.trim().toUpperCase()));
-                        } catch (IllegalArgumentException e) {
-                            TipoInscripcion matched = null;
-                            for (TipoInscripcion t : TipoInscripcion.values()) {
-                                if (t.name().equalsIgnoreCase(tipoStr.trim())) {
-                                    matched = t;
-                                    break;
-                                }
-                            }
-                            ins.setTipo(matched);
-                        }
-                    } else {
-                        ins.setTipo(null);
-                    }
-                    return ins;
-                }
-            });
+            List<Inscripcion> result = jdbcTemplate.query(query,
+                    (rs, rowNumber) -> mapInscripcion(rs, null));
             return result;
         } else {
             return null;
         }
     } catch (DataAccessException exception) {
         System.err.println("Unable to list inscripciones: " + exception.getMessage());
-        exception.printStackTrace();
         return null;
     }
 }
@@ -235,27 +240,9 @@ public List<Inscripcion> obtenerInscripcionesPorTipo(TipoInscripcion tipo) {
             return Collections.emptyList();
         }
 
-        return jdbcTemplate.query(query, new RowMapper<Inscripcion>() {
-            @Override
-            public Inscripcion mapRow(ResultSet rs, int rowNum) throws SQLException {
-                Inscripcion ins = new Inscripcion();
-                ins.setId(rs.getInt("id"));
-                String tipoStr = rs.getString("tipo");
-                if (tipoStr != null) {
-                    try {
-                        ins.setTipo(TipoInscripcion.valueOf(tipoStr.trim().toUpperCase()));
-                    } catch (IllegalArgumentException e) {
-                        for (TipoInscripcion t : TipoInscripcion.values()) {
-                            if (t.name().equalsIgnoreCase(tipoStr.trim())) {
-                                ins.setTipo(t);
-                                break;
-                            }
-                        }
-                    }
-                }
-                return ins;
-            }
-        }, tipo.name());
+        return jdbcTemplate.query(query,
+                (rs, rowNum) -> mapInscripcion(rs, TipoInscripcion.NONE),
+                tipo.name());
 
     } catch (DataAccessException e) {
         System.err.println("Error al listar inscripciones por tipo: " + e.getMessage());
@@ -277,29 +264,9 @@ public Inscripcion obtenerInscripcionPorDni(String dni) {
     }
 
     try {
-        List<Inscripcion> lista = jdbcTemplate.query(query, new Object[] { dni }, (rs, rowNum) -> {
-            Inscripcion ins = new Inscripcion();
-            ins.setId(rs.getInt("id"));
-            String tipoStr = rs.getString("tipo");
-            if (tipoStr != null) {
-                String normalized = tipoStr.trim().toUpperCase();
-                try {
-                    ins.setTipo(TipoInscripcion.valueOf(normalized));
-                } catch (IllegalArgumentException ex) {
-                    TipoInscripcion matched = TipoInscripcion.NONE;
-                    for (TipoInscripcion t : TipoInscripcion.values()) {
-                        if (t.name().equalsIgnoreCase(tipoStr.trim())) {
-                            matched = t;
-                            break;
-                        }
-                    }
-                    ins.setTipo(matched);
-                }
-            } else {
-                ins.setTipo(TipoInscripcion.NONE);
-            }
-            return ins;
-        });
+        List<Inscripcion> lista = jdbcTemplate.query(query,
+                new Object[] { dni },
+                (rs, rowNum) -> mapInscripcion(rs, TipoInscripcion.NONE));
 
         return lista.isEmpty() ? null : lista.get(0);
     } catch (DataAccessException ex) {
@@ -592,27 +559,9 @@ public Inscripcion findInscripcionById(Integer id) {
                 return null;
             }
 
-            List<Socio> socios = jdbcTemplate.query(query, new RowMapper<Socio>() {
-                @Override
-                public Socio mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    Socio s = new Socio();
-                    s.setDni(rs.getString("dni"));
-                    s.setNombre(rs.getString("nombre"));
-                    s.setApellidos(rs.getString("apellidos"));
-                    java.sql.Date fechaNacimiento = rs.getDate("fecha_nacimiento");
-                    if (fechaNacimiento != null) {
-                        s.setFechaNacimiento(fechaNacimiento.toLocalDate());
-                    }
-                    s.setDireccion(rs.getString("direccion"));
-                    s.setTituloPatron(rs.getBoolean("titulo_patron"));
-                    java.sql.Date fechaInscripcion = rs.getDate("fecha_inscripcion");
-                    if (fechaInscripcion != null) {
-                        s.setFechaInscripcion(fechaInscripcion.toLocalDate());
-                    }
-                    s.setIdInscripcion(rs.getInt("id_inscripcion"));
-                    return s;
-                }
-            }, dni);
+            List<Socio> socios = jdbcTemplate.query(query,
+                    (rs, rowNum) -> mapSocio(rs, false, true),
+                    dni);
 
             return socios.isEmpty() ? null : socios.get(0);
 
@@ -631,53 +580,15 @@ public Inscripcion findInscripcionById(Integer id) {
      */
     public boolean addConyuge(String dniTitular, Socio conyuge) {
         try {
-            if (conyuge == null || conyuge.getDni() == null || conyuge.getDni().isBlank()) {
-                System.err.println(" El cónyuge es nulo o tiene un DNI vacío");
+            Socio titular = findByDni(dniTitular);
+            if (titular == null) {
+                System.err.println("No existe socio titular con DNI " + dniTitular);
                 return false;
             }
-
-            if (existsByDni(conyuge.getDni())) {
-                System.err.println("⚠️ El cónyuge con DNI " + conyuge.getDni() + " ya existe.");
-                return false;
-            }
-
-            Socio socio = findByDni(dniTitular);
-            conyuge.setIdInscripcion(socio.getIdInscripcion());
-
-            System.out.println("Insertando conyuge en la inscripcion --> " + conyuge.getIdInscripcion());
-
-            if (conyuge.getFechaNacimiento() == null) {
-                conyuge.setFechaNacimiento(java.time.LocalDate.now()); // temporal
-            }
-            if (conyuge.getFechaInscripcion() == null) {
-                conyuge.setFechaInscripcion(java.time.LocalDate.now());
-            }
-            if (conyuge.getDireccion() == null || conyuge.getDireccion().isBlank()) {
-                conyuge.setDireccion("Sin especificar");
-            }
-
-            String query = sqlQueries.getProperty("insertar-socio");
-            if (query == null) {
-                System.err.println(" No se encontró la query 'insertar-socio'");
-                return false;
-            }
-
-            int result = jdbcTemplate.update(query,
-                    conyuge.getDni(),
-                    conyuge.getNombre(),
-                    conyuge.getApellidos(),
-                    conyuge.getFechaNacimiento(),
-                    conyuge.getDireccion(),
-                    conyuge.isTituloPatron(),
-                    conyuge.getIdInscripcion(),
-                    250.00, // cuota_inscripcion (requerido y NOT NULL)
-                    conyuge.getFechaInscripcion());
-
-            return true;
+            return addConyugeConInscripcion(titular.getIdInscripcion(), conyuge);
 
         } catch (DataAccessException e) {
             System.err.println(" Error al registrar cónyuge: " + e.getMessage());
-            e.printStackTrace();
             return false;
         }
     }
@@ -685,37 +596,8 @@ public Inscripcion findInscripcionById(Integer id) {
     //Aclaración: esta función es idéntica a la anterior, pero recibe el idInscripcion en vez del dniTitular
     //Necesaria para la P2
     public boolean addConyuge(int idInscripcion, Socio conyuge) {
-    if (conyuge == null || conyuge.getDni() == null || conyuge.getDni().isBlank()) {
-        System.err.println("El cónyuge es nulo o tiene un DNI vacío");
-        return false;
+        return addConyugeConInscripcion(idInscripcion, conyuge);
     }
-
-    if (existsByDni(conyuge.getDni())) {
-        System.err.println("El cónyuge con DNI " + conyuge.getDni() + " ya existe.");
-        return false;
-    }
-
-    conyuge.setIdInscripcion(idInscripcion);
-
-    String query = sqlQueries.getProperty("insertar-socio");
-    if (query == null) {
-        System.err.println("No se encontró la query 'insertar-socio'");
-        return false;
-    }
-
-    jdbcTemplate.update(query,
-            conyuge.getDni(),
-            conyuge.getNombre(),
-            conyuge.getApellidos(),
-            conyuge.getFechaNacimiento(),
-            conyuge.getDireccion(),
-            conyuge.isTituloPatron(),
-            conyuge.getIdInscripcion(),
-            250.00,
-            conyuge.getFechaInscripcion());
-
-    return true;
-}
 
 
     /**
@@ -727,53 +609,22 @@ public Inscripcion findInscripcionById(Integer id) {
      */
     public boolean addHijo(String dniTitular, Socio hijo) {
         try {
-            if (hijo == null || hijo.getDni() == null || hijo.getDni().isBlank()) {
-                System.err.println(" El cónyuge es nulo o tiene un DNI vacío");
+            if (!validarSocioFamiliarNuevo(hijo, "hijo")) {
                 return false;
             }
 
-            if (existsByDni(hijo.getDni())) {
-                System.err.println("⚠️ El cónyuge con DNI " + hijo.getDni() + " ya existe.");
+            Socio titular = findByDni(dniTitular);
+            if (titular == null) {
+                System.err.println("No existe socio titular con DNI " + dniTitular);
                 return false;
             }
 
-            Socio socio = findByDni(dniTitular);
-            hijo.setIdInscripcion(socio.getIdInscripcion());
-
-            System.out.println("Insertando hijo en la inscripcion --> " + hijo.getIdInscripcion());
-
-            if (hijo.getFechaNacimiento() == null) {
-                hijo.setFechaNacimiento(java.time.LocalDate.now()); // temporal
-            }
-            if (hijo.getFechaInscripcion() == null) {
-                hijo.setFechaInscripcion(java.time.LocalDate.now());
-            }
-            if (hijo.getDireccion() == null || hijo.getDireccion().isBlank()) {
-                hijo.setDireccion("Sin especificar");
-            }
-
-            String query = sqlQueries.getProperty("insertar-socio");
-            if (query == null) {
-                System.err.println(" No se encontró la query 'insertar-socio'");
-                return false;
-            }
-
-            int result = jdbcTemplate.update(query,
-                    hijo.getDni(),
-                    hijo.getNombre(),
-                    hijo.getApellidos(),
-                    hijo.getFechaNacimiento(),
-                    hijo.getDireccion(),
-                    hijo.isTituloPatron(),
-                    hijo.getIdInscripcion(),
-                    100.00, // cuota_inscripcion (requerido y NOT NULL)
-                    hijo.getFechaInscripcion());
-
-            return true;
+            hijo.setIdInscripcion(titular.getIdInscripcion());
+            completarDatosSocioFamiliar(hijo);
+            return insertarSocioConCuota(hijo, 100.00);
 
         } catch (DataAccessException e) {
-            System.err.println(" Error al registrar cónyuge: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println(" Error al registrar hijo: " + e.getMessage());
             return false;
         }
     }
@@ -794,26 +645,9 @@ public Inscripcion findInscripcionById(Integer id) {
                 return null;
             }
 
-            List<Socio> socios = jdbcTemplate.query(query, new RowMapper<Socio>() {
-                @Override
-                public Socio mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    Socio s = new Socio();
-                    s.setDni(rs.getString("dni"));
-                    s.setNombre(rs.getString("nombre"));
-                    s.setApellidos(rs.getString("apellidos"));
-                    java.sql.Date fechaNacimiento = rs.getDate("fecha_nacimiento");
-                    if (fechaNacimiento != null) {
-                        s.setFechaNacimiento(fechaNacimiento.toLocalDate());
-                    }
-                    s.setDireccion(rs.getString("direccion"));
-                    s.setTituloPatron(rs.getBoolean("titulo_patron"));
-                    java.sql.Date fechaInscripcion = rs.getDate("fecha_inscripcion");
-                    if (fechaInscripcion != null) {
-                        s.setFechaInscripcion(fechaInscripcion.toLocalDate());
-                    }
-                    return s;
-                }
-            }, idInscripcion);
+            List<Socio> socios = jdbcTemplate.query(query,
+                    (rs, rowNum) -> mapSocio(rs, false, false),
+                    idInscripcion);
 
             return socios.isEmpty() ? null : socios.get(0);
 
@@ -839,26 +673,9 @@ public Inscripcion findInscripcionById(Integer id) {
                 return null;
             }
 
-            List<Socio> socios = jdbcTemplate.query(query, new RowMapper<Socio>() {
-                @Override
-                public Socio mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    Socio s = new Socio();
-                    s.setDni(rs.getString("dni"));
-                    s.setNombre(rs.getString("nombre"));
-                    s.setApellidos(rs.getString("apellidos"));
-                    java.sql.Date fechaNacimiento = rs.getDate("fecha_nacimiento");
-                    if (fechaNacimiento != null) {
-                        s.setFechaNacimiento(fechaNacimiento.toLocalDate());
-                    }
-                    s.setDireccion(rs.getString("direccion"));
-                    s.setTituloPatron(rs.getBoolean("titulo_patron"));
-                    java.sql.Date fechaInscripcion = rs.getDate("fecha_inscripcion");
-                    if (fechaInscripcion != null) {
-                        s.setFechaInscripcion(fechaInscripcion.toLocalDate());
-                    }
-                    return s;
-                }
-            }, idInscripcion);
+            List<Socio> socios = jdbcTemplate.query(query,
+                    (rs, rowNum) -> mapSocio(rs, false, false),
+                    idInscripcion);
 
             return socios.isEmpty() ? null : socios.get(0);
 
@@ -880,15 +697,7 @@ public Inscripcion findInscripcionById(Integer id) {
             if (query != null) {
                 return jdbcTemplate.query(query, new RowMapper<Socio>() {
                     public Socio mapRow(ResultSet rs, int rowNumber) throws SQLException {
-                        Socio socio = new Socio();
-                        socio.setDni(rs.getString("dni"));
-                        socio.setNombre(rs.getString("nombre"));
-                        socio.setApellidos(rs.getString("apellidos"));
-                        socio.setFechaNacimiento(rs.getDate("fecha_nacimiento").toLocalDate());
-                        socio.setDireccion(rs.getString("direccion"));
-                        socio.setTituloPatron(rs.getBoolean("titulo_patron"));
-                        socio.setFechaInscripcion(rs.getDate("fecha_inscripcion").toLocalDate());
-                        socio.setIdInscripcion(rs.getInt("id_inscripcion"));
+                        Socio socio = mapSocio(rs, false, true);
                         
                         // Obtener el conyuge
                         Socio conyuge = obtenerSocioConyuge(socio.getIdInscripcion());

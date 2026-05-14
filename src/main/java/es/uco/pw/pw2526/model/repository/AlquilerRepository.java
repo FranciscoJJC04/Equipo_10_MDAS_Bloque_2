@@ -22,33 +22,66 @@ public class AlquilerRepository extends AbstractRepository {
         this.setSQLQueriesFileName("db/sql.properties");
     }
 
+    private Alquiler mapAlquiler(ResultSet rs) throws SQLException {
+        Alquiler alquiler = new Alquiler();
+        alquiler.setIdAlquiler(rs.getInt("id_alquiler"));
+        alquiler.setDniSocio(rs.getString("dni_socio"));
+        alquiler.setMatricula(rs.getString("matricula"));
+        alquiler.setNumPasajeros(rs.getInt("num_pasajeros"));
+        alquiler.setImporteTotal(rs.getDouble("importe_total"));
+
+        java.sql.Date fechaInicio = rs.getDate("fecha_inicio");
+        java.sql.Date fechaFin = rs.getDate("fecha_fin");
+        if (fechaInicio != null) {
+            alquiler.setFechaInicio(fechaInicio.toLocalDate());
+        }
+        if (fechaFin != null) {
+            alquiler.setFechaFin(fechaFin.toLocalDate());
+        }
+        return alquiler;
+    }
+
+    private String obtenerQueryInsertAlquiler() {
+        String query = sqlQueries.getProperty("insertar-alquiler");
+        if (query == null) {
+            System.err.println("No se encontró la query 'insertar-alquiler' en sql.properties");
+        }
+        return query;
+    }
+
+    private Double calcularImporteAlquiler(Alquiler alquiler) {
+        long dias = java.time.temporal.ChronoUnit.DAYS.between(alquiler.getFechaInicio(), alquiler.getFechaFin()) + 1;
+        if (dias <= 0) {
+            System.err.println(" Número de días inválido: " + dias);
+            return null;
+        }
+        return 20.0 * alquiler.getNumPasajeros() * (double) dias;
+    }
+
+    private boolean insertarAlquiler(String insertAlquilerQuery, Alquiler alquiler, double importe) {
+        int insertedRows = jdbcTemplate.update(insertAlquilerQuery,
+                alquiler.getMatricula(),
+                alquiler.getNumPasajeros(),
+                importe,
+                alquiler.getDniSocio(),
+                alquiler.getFechaInicio(),
+                alquiler.getFechaFin());
+        return insertedRows > 0;
+    }
+
     public boolean addAlquiler(Alquiler alquiler) {
         try {
-            String insertAlquilerQuery = sqlQueries.getProperty("insertar-alquiler");
+            String insertAlquilerQuery = obtenerQueryInsertAlquiler();
             if (insertAlquilerQuery == null) {
-                System.err.println("No se encontró la query 'insertar-alquiler' en sql.properties");
                 return false;
             }
 
-            long dias = java.time.temporal.ChronoUnit.DAYS.between(alquiler.getFechaInicio(), alquiler.getFechaFin()) + 1;
-            if (dias <= 0) {
-                System.err.println(" Número de días inválido: " + dias);
+            Double importe = calcularImporteAlquiler(alquiler);
+            if (importe == null) {
                 return false;
             }
-            double importe = 20.0 * alquiler.getNumPasajeros() * (double) dias;
             alquiler.setImporteTotal(importe);
-
-       
-
-        int insertedRows = jdbcTemplate.update(insertAlquilerQuery,
-            alquiler.getMatricula(),
-            alquiler.getNumPasajeros(),
-            importe,
-            alquiler.getDniSocio(),
-            alquiler.getFechaInicio(),
-            alquiler.getFechaFin());
-
-            return insertedRows > 0;
+            return insertarAlquiler(insertAlquilerQuery, alquiler, importe);
         } catch (DataAccessException e) {
             System.err.println("Error al insertar alquiler: " + e.getMessage());
             return false;
@@ -192,31 +225,7 @@ public class AlquilerRepository extends AbstractRepository {
             if(query != null){
                 List<Alquiler> alquileres = jdbcTemplate.query(query, new RowMapper<Alquiler>(){
                 public Alquiler mapRow(ResultSet rs, int rowNumber) throws SQLException{
-                    Alquiler alquiler = new Alquiler();
-                    try {
-                        int idAlquiler = rs.getInt("id_alquiler");
-                        alquiler.setIdAlquiler(idAlquiler);
-                    } catch (SQLException ex) {
-                    }
-                    alquiler.setDniSocio(rs.getString("dni_socio"));
-                    alquiler.setMatricula(rs.getString("matricula"));
-                    try {
-                        alquiler.setNumPasajeros(rs.getInt("num_pasajeros"));
-                    } catch (SQLException ex) {
-                    }
-                    try {
-                        alquiler.setImporteTotal(rs.getDouble("importe_total"));
-                    } catch (SQLException ex) {
-                    }
-                    java.sql.Date fechaInicio = rs.getDate("fecha_inicio");
-                    java.sql.Date fechaFin = rs.getDate("fecha_fin");
-                    if (fechaInicio != null) {
-                        alquiler.setFechaInicio(fechaInicio.toLocalDate());
-                    }
-                    if (fechaFin != null) {
-                        alquiler.setFechaFin(fechaFin.toLocalDate());
-                    }
-                    return alquiler;
+                    return mapAlquiler(rs);
                 }
                 });
                 return alquileres;
@@ -224,8 +233,7 @@ public class AlquilerRepository extends AbstractRepository {
             else
                 return null;
         }catch(DataAccessException exception){
-            System.err.println("Unable to find students");
-            exception.printStackTrace();
+            System.err.println("Unable to find alquileres: " + exception.getMessage());
             return null;
         }
     }
@@ -259,19 +267,7 @@ public Alquiler obtenerAlquilerPorId(int idAlquiler) {
         return jdbcTemplate.queryForObject(selectAlquilerByIdQuery, new RowMapper<Alquiler>() {
             @Override
             public Alquiler mapRow(ResultSet rs, int rowNum) throws SQLException {
-                Alquiler alquiler = new Alquiler();
-                alquiler.setIdAlquiler(rs.getInt("id_alquiler"));
-                alquiler.setDniSocio(rs.getString("dni_socio"));
-                alquiler.setMatricula(rs.getString("matricula"));
-                alquiler.setNumPasajeros(rs.getInt("num_pasajeros"));
-                alquiler.setImporteTotal(rs.getDouble("importe_total"));
-
-                java.sql.Date fechaInicio = rs.getDate("fecha_inicio");
-                java.sql.Date fechaFin = rs.getDate("fecha_fin");
-                if (fechaInicio != null) alquiler.setFechaInicio(fechaInicio.toLocalDate());
-                if (fechaFin != null) alquiler.setFechaFin(fechaFin.toLocalDate());
-
-                return alquiler;
+                return mapAlquiler(rs);
             }
         }, idAlquiler);
 
@@ -292,19 +288,7 @@ public List<Alquiler> obtenerAlquileresFuturos(java.time.LocalDate fechaReferenc
         return jdbcTemplate.query(listarFuturosQuery, new RowMapper<Alquiler>() {
             @Override
             public Alquiler mapRow(ResultSet rs, int rowNum) throws SQLException {
-                Alquiler alquiler = new Alquiler();
-                alquiler.setIdAlquiler(rs.getInt("id_alquiler"));
-                alquiler.setDniSocio(rs.getString("dni_socio"));
-                alquiler.setMatricula(rs.getString("matricula"));
-                alquiler.setNumPasajeros(rs.getInt("num_pasajeros"));
-                alquiler.setImporteTotal(rs.getDouble("importe_total"));
-
-                java.sql.Date fechaInicio = rs.getDate("fecha_inicio");
-                java.sql.Date fechaFin = rs.getDate("fecha_fin");
-                if (fechaInicio != null) alquiler.setFechaInicio(fechaInicio.toLocalDate());
-                if (fechaFin != null) alquiler.setFechaFin(fechaFin.toLocalDate());
-
-                return alquiler;
+                return mapAlquiler(rs);
             }
         }, java.sql.Date.valueOf(fechaReferencia));
 

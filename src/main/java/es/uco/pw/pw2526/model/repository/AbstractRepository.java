@@ -47,8 +47,7 @@ public class AbstractRepository {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Error creating properties object for SQL queries");
-            e.printStackTrace();
+            System.err.println("Error creating properties object for SQL queries: " + e.getMessage());
         }
 
         if (!loaded) {
@@ -72,8 +71,7 @@ public class AbstractRepository {
                     }
                 }
             } catch (IOException e) {
-                System.err.println("Error creating properties object for SQL queries from classpath");
-                e.printStackTrace();
+                System.err.println("Error creating properties object for SQL queries from classpath: " + e.getMessage());
             }
         }
 

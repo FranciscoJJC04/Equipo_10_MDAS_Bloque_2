@@ -11,12 +11,12 @@ import java.time.LocalDate;
  * </p>
  */
 public class Reserva {
-    private int id;
+    private int idReserva;
     private LocalDate fecha;
     private String dniSocio;      
     private String matricula;      
     private String dniPatron;      
-    private int numeroPasajeros;
+    private int numPasajeros;
     private double importeTotal;
     private String descripcionReserva;
 
@@ -25,12 +25,12 @@ public class Reserva {
      * Los campos numéricos se inicializan a 0 y las cadenas a cadena vacía.
      */
     public Reserva() {
-        this.id = 0;
+        this.idReserva = 0;
         this.fecha = null;
         this.dniSocio = "";
         this.matricula = "";
         this.dniPatron = "";
-        this.numeroPasajeros = 0;
+        this.numPasajeros = 0;
         this.importeTotal = 0.0;
         this.descripcionReserva = "";
     }
@@ -38,20 +38,20 @@ public class Reserva {
     /**
      * Crea una instancia con todos los campos principales.
      *
-     * @param id identificador de la reserva
+     * @param idReserva identificador de la reserva
      * @param fecha fecha asociada a la reserva
      * @param dniSocio DNI del socio solicitante
      * @param matricula matrícula de la embarcación
-     * @param numeroPasajeros número de pasajeros
+     * @param numPasajeros número de pasajeros
      * @param importeTotal importe total de la reserva
      * @param descripcionReserva texto descriptivo opcional
      */
-    public Reserva(int id, LocalDate fecha, String dniSocio, String matricula, int numeroPasajeros, double importeTotal, String descripcionReserva) {
-        this.id = id;
+    public Reserva(int idReserva, LocalDate fecha, String dniSocio, String matricula, int numPasajeros, double importeTotal, String descripcionReserva) {
+        this.idReserva = idReserva;
         this.fecha = fecha;
         this.dniSocio = dniSocio;
         this.matricula = matricula;
-        this.numeroPasajeros = numeroPasajeros;
+        this.numPasajeros = numPasajeros;
         this.importeTotal = importeTotal;
         this.descripcionReserva = descripcionReserva;
     }
@@ -62,16 +62,16 @@ public class Reserva {
      * @return identificador numérico
      */
     public int getId() {
-        return id;
+        return idReserva;
     }
 
     /**
      * Establece el identificador de la reserva.
      *
-     * @param id identificador numérico
+     * @param idReserva identificador numérico
      */
-    public void setId(int id) {
-        this.id = id;
+    public void setId(int idReserva) {
+        this.idReserva = idReserva;
     }
 
     /**
@@ -134,16 +134,16 @@ public class Reserva {
      * @return número de pasajeros
      */
     public int getNumPasajeros() {
-        return numeroPasajeros;
+        return numPasajeros;
     }
 
     /**
      * Establece el número de pasajeros para la reserva.
      *
-     * @param numeroPasajeros número de pasajeros
+     * @param numPasajeros número de pasajeros
      */
-    public void setNumPasajeros(final int numeroPasajeros) {
-        this.numeroPasajeros = numeroPasajeros;
+    public void setNumPasajeros(final int numPasajeros) {
+        this.numPasajeros = numPasajeros;
     }
 
     /**
@@ -184,8 +184,8 @@ public class Reserva {
 
     @Override
     public String toString() {
-        return "Reserva [id=" + id + ", fecha=" + fecha + ", dniSocio=" + dniSocio + ", matricula=" + matricula
-                + ", dniPatron=" + dniPatron + ", numeroPasajeros=" + numeroPasajeros + ", importeTotal="
+        return "Reserva [idReserva=" + idReserva + ", fecha=" + fecha + ", dniSocio=" + dniSocio + ", matricula=" + matricula
+                + ", dniPatron=" + dniPatron + ", numPasajeros=" + numPasajeros + ", importeTotal="
                 + importeTotal + ", descripcionReserva=" + descripcionReserva + "]";
     }
     

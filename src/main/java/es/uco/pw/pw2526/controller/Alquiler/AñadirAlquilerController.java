@@ -99,6 +99,57 @@ public class AñadirAlquilerController {
         }
     }
 
+    private String validarDatosInicialesAlquiler(Alquiler alquiler) {
+        if (alquiler == null) {
+            return "Datos de alquiler vacíos.";
+        }
+        if (alquiler.getFechaInicio() == null || alquiler.getFechaFin() == null) {
+            return "Fechas de inicio y fin obligatorias.";
+        }
+        if (alquiler.getFechaInicio().isAfter(alquiler.getFechaFin())) {
+            return "La fecha de inicio no puede ser posterior a la de fin.";
+        }
+        return null;
+    }
+
+    private String validarDuracionAlquiler(java.time.LocalDate inicio, java.time.LocalDate fin) {
+        long dias = java.time.temporal.ChronoUnit.DAYS.between(inicio, fin) + 1;
+        if (dias <= 0) {
+            return "Número de días inválido.";
+        }
+        if (!isDuracionValidaPorTemporada(inicio, dias)) {
+            return "Duración no permitida para la temporada (Oct-Abr: 3 días; May-Sep: 7 o 14 días).";
+        }
+        return null;
+    }
+
+    private String validarDisponibilidadAlquiler(String matricula, java.time.LocalDate inicio, java.time.LocalDate fin) {
+        Integer solapamientos = alquilerRepository.countAlquileresSolapados(matricula, inicio, fin);
+        if (solapamientos == null) {
+            return "Error comprobando disponibilidad.";
+        }
+        if (solapamientos > 0) {
+            return "La embarcación no está disponible en ese rango de fechas.";
+        }
+        return null;
+    }
+
+    private String validarCapacidadAlquiler(String matricula, Integer numPasajeros) {
+        Integer plazas = alquilerRepository.obtenerPlazas(matricula);
+        if (plazas == null) {
+            return "No se encontró la embarcación.";
+        }
+        if (numPasajeros > plazas) {
+            return "Número de pasajeros supera la capacidad (" + plazas + ").";
+        }
+        return null;
+    }
+
+    private double calcularImporteAlquiler(Integer numPasajeros, java.time.LocalDate inicio, java.time.LocalDate fin) {
+        long dias = java.time.temporal.ChronoUnit.DAYS.between(inicio, fin) + 1;
+        return 20.0 * numPasajeros * (double) dias;
+    }
+
     @GetMapping("/addAlquiler")
     /**
      * Muestra la vista de creación de un nuevo alquiler.
@@ -132,59 +183,36 @@ public class AñadirAlquilerController {
      * @return ModelAndView con la vista de éxito o fallo y mensajes
      */
     public ModelAndView postAddAlquiler(@ModelAttribute("newAlquiler") Alquiler newAlquiler) {
-        if (newAlquiler == null) {
-            return crearRespuestaFallida("alquiler/crearAlquilerView", "Datos de alquiler vacíos.");
+        String errorInicial = validarDatosInicialesAlquiler(newAlquiler);
+        if (errorInicial != null) {
+            String vista = "Datos de alquiler vacíos.".equals(errorInicial)
+                    ? "alquiler/crearAlquilerView"
+                    : "alquiler/crearAlquilerViewFail";
+            return crearRespuestaFallida(vista, errorInicial);
         }
 
         String matricula = newAlquiler.getMatricula();
-        String dni = newAlquiler.getDniSocio();
         Integer numPasajeros = newAlquiler.getNumPasajeros();
         java.time.LocalDate inicio = newAlquiler.getFechaInicio();
         java.time.LocalDate fin = newAlquiler.getFechaFin();
 
-        if (inicio == null || fin == null) {
-            return crearRespuestaFallida("alquiler/crearAlquilerViewFail", "Fechas de inicio y fin obligatorias.");
-        }
-        if (inicio.isAfter(fin)) {
-            return crearRespuestaFallida("alquiler/crearAlquilerViewFail",
-                    "La fecha de inicio no puede ser posterior a la de fin.");
+        String errorDuracion = validarDuracionAlquiler(inicio, fin);
+        if (errorDuracion != null) {
+            return crearRespuestaFallida("alquiler/crearAlquilerViewFail", errorDuracion);
         }
 
-        long dias = java.time.temporal.ChronoUnit.DAYS.between(inicio, fin) + 1;
-        if (dias <= 0) {
-            return crearRespuestaFallida("alquiler/crearAlquilerViewFail", "Número de días inválido.");
-        }
-        if (!isDuracionValidaPorTemporada(inicio, dias)) {
-            return crearRespuestaFallida("alquiler/crearAlquilerViewFail",
-                    "Duración no permitida para la temporada (Oct-Abr: 3 días; May-Sep: 7 o 14 días).");
+        String errorDisponibilidad = validarDisponibilidadAlquiler(matricula, inicio, fin);
+        if (errorDisponibilidad != null) {
+            return crearRespuestaFallida("alquiler/crearAlquilerViewFail.html", errorDisponibilidad);
         }
 
-        // 3) Comprobar disponibilidad (usa método en AlquilerRepository que cuente
-        // solapamientos)
-        Integer solapamientos = alquilerRepository.countAlquileresSolapados(matricula, inicio, fin);
-        if (solapamientos == null) {
-            return crearRespuestaFallida("alquiler/crearAlquilerViewFail.html", "Error comprobando disponibilidad.");
-        }
-        if (solapamientos > 0) {
-            return crearRespuestaFallida("alquiler/crearAlquilerViewFail.html",
-                    "La embarcación no está disponible en ese rango de fechas.");
+        String errorCapacidad = validarCapacidadAlquiler(matricula, numPasajeros);
+        if (errorCapacidad != null) {
+            return crearRespuestaFallida("alquiler/crearAlquilerViewFail.html", errorCapacidad);
         }
 
-        // 4) Comprobar plazas usando AlquilerRepository
-        Integer plazas = alquilerRepository.obtenerPlazas(matricula);
-        if (plazas == null) {
-            return crearRespuestaFallida("alquiler/crearAlquilerViewFail.html", "No se encontró la embarcación.");
-        }
-        if (numPasajeros > plazas) {
-            return crearRespuestaFallida("alquiler/crearAlquilerViewFail.html",
-                    "Número de pasajeros supera la capacidad (" + plazas + ").");
-        }
-
-        // 5) Calcular importe y persistir
-        double importe = 20.0 * numPasajeros * (double) dias;
+        double importe = calcularImporteAlquiler(numPasajeros, inicio, fin);
         newAlquiler.setImporteTotal(importe);
-
-        // Refactor de nombrado: evitar booleanos ambiguos como ok.
         boolean alquilerGuardado = alquilerRepository.addAlquiler(newAlquiler);
         if (!alquilerGuardado) {
             return crearRespuestaFallida("alquiler/crearAlquilerViewFail.html",
@@ -237,22 +265,6 @@ public class AñadirAlquilerController {
         }
         // Mayo(5) - Septiembre(9) => 7 o 14 días
         return dias == 7 || dias == 14;
-    }
-
-    /**
-     * Construye un {@link ModelAndView} con la vista de resultado según el
-     * parámetro {@code success} y añade el objeto alquiler al modelo.
-     *
-     * @param success indica si la operación fue exitosa
-     * @param alquiler objeto alquiler (puede ser null)
-     * @return ModelAndView preparado para la vista de respuesta
-     */
-    private ModelAndView buildResponse(boolean success, Alquiler alquiler) {
-        ModelAndView mv = new ModelAndView();
-        String nextPage = success ? "/crearAlquilerViewSuccess.html" : "/crearAlquilerViewFail.html";
-        mv.setViewName(nextPage);
-        mv.addObject("alquiler", alquiler);
-        return mv;
     }
 
 }

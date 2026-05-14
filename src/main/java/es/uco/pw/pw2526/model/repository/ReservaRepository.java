@@ -35,6 +35,52 @@ public class ReservaRepository extends AbstractRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    private String obtenerQueryInsertReserva() {
+        String query = sqlQueries.getProperty("insertar-reserva");
+        if (query == null) {
+            System.err.println(" No se encontró la query 'insertar-reserva' en sql.properties");
+        }
+        return query;
+    }
+
+    private Double calcularImporteReserva(Reserva reserva) {
+        long dias = java.time.temporal.ChronoUnit.DAYS.between(reserva.getFecha(), reserva.getFecha()) + 1;
+        if (dias <= 0) {
+            System.err.println(" Número de días inválido: " + dias);
+            return null;
+        }
+        return 40.0 * reserva.getNumPasajeros() * (double) dias;
+    }
+
+    private boolean validarPlazasReserva(Reserva reserva) {
+        Integer plazas = obtenerPlazas(reserva.getMatricula());
+
+        if (plazas == null) {
+            System.err.println(" No se pudo obtener el número de plazas para la embarcación " + reserva.getMatricula());
+            return false;
+        }
+
+        if (reserva.getNumPasajeros() > plazas) {
+            System.err.println(" Número de pasajeros excede las plazas disponibles (" + reserva.getNumPasajeros()
+                    + "/" + plazas + ")");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean insertarReserva(String insertReservaQuery, Reserva reserva) {
+        java.sql.Date sqlFecha = java.sql.Date.valueOf(reserva.getFecha());
+        int insertedRows = jdbcTemplate.update(insertReservaQuery,
+                reserva.getId(),
+                sqlFecha,
+                reserva.getDniSocio(),
+                reserva.getMatricula(),
+                reserva.getImporteTotal(),
+                reserva.getNumPasajeros(),
+                reserva.getDescripcionReserva());
+        return insertedRows > 0;
+    }
+
     /**
      * Inserta una nueva reserva en la base de datos tras validar plazas y
      * calcular el importe total.
@@ -45,44 +91,21 @@ public class ReservaRepository extends AbstractRepository {
      */
     public boolean addReserva(Reserva reserva) {
         try {
-            String insertReservaQuery = sqlQueries.getProperty("insertar-reserva");
+            String insertReservaQuery = obtenerQueryInsertReserva();
             if (insertReservaQuery == null) {
-                System.err.println(" No se encontró la query 'insertar-reserva' en sql.properties");
                 return false;
             }
 
-            long dias = java.time.temporal.ChronoUnit.DAYS.between(reserva.getFecha(), reserva.getFecha()) + 1;
-            if (dias <= 0) {
-                System.err.println(" Número de días inválido: " + dias);
+            Double importe = calcularImporteReserva(reserva);
+            if (importe == null) {
                 return false;
             }
-            double importe = 40.0 * reserva.getNumPasajeros() * (double) dias;
             reserva.setImporteTotal(importe);
-            Integer plazas = obtenerPlazas(reserva.getMatricula());
 
-            if (plazas == null) {
-                System.err.println(
-                        " No se pudo obtener el número de plazas para la embarcación " + reserva.getMatricula());
+            if (!validarPlazasReserva(reserva)) {
                 return false;
             }
-
-            if (reserva.getNumPasajeros() > plazas) {
-                System.err.println(" Número de pasajeros excede las plazas disponibles (" + reserva.getNumPasajeros()
-                        + "/" + plazas + ")");
-                return false;
-            }
-
-            java.sql.Date sqlFecha = java.sql.Date.valueOf(reserva.getFecha());
-                int insertedRows = jdbcTemplate.update(insertReservaQuery,
-                    reserva.getId(),
-                    sqlFecha,
-                    reserva.getDniSocio(),
-                    reserva.getMatricula(),
-                    reserva.getImporteTotal(),
-                    reserva.getNumPasajeros(),
-                    reserva.getDescripcionReserva());
-
-            return insertedRows > 0;
+            return insertarReserva(insertReservaQuery, reserva);
 
         } catch (DataAccessException e) {
             System.err.println(" Error al insertar reserva: " + e.getMessage());
@@ -138,7 +161,6 @@ public class ReservaRepository extends AbstractRepository {
             return jdbcTemplate.queryForObject(selectPlazasQuery, Integer.class, matricula);
         } catch (DataAccessException e) {
             System.err.println("Error obteniendo plazas de embarcación: " + e.getMessage());
-            e.printStackTrace();
             return null;
         }
     }
@@ -177,8 +199,7 @@ public class ReservaRepository extends AbstractRepository {
                 return null;
             }
         } catch (DataAccessException exception) {
-            System.err.println("Unable to find reservas");
-            exception.printStackTrace();
+            System.err.println("Unable to find reservas: " + exception.getMessage());
             return null;
         }
     }

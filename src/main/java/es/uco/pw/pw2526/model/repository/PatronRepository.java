@@ -125,8 +125,7 @@ public class PatronRepository extends AbstractRepository {
                 return null;
             }
         } catch (DataAccessException exception) {
-            System.err.println("Unable to find patrons");
-            exception.printStackTrace();
+            System.err.println("Unable to find patrons: " + exception.getMessage());
             return null;
         }
     }
