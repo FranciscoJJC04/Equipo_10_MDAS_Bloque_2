@@ -4,6 +4,7 @@ import es.uco.pw.pw2526.model.domain.alquiler.Alquiler;
 import es.uco.pw.pw2526.model.domain.reserva.Reserva;
 import es.uco.pw.pw2526.model.repository.AlquilerRepository;
 import es.uco.pw.pw2526.model.repository.ReservaRepository;
+import es.uco.pw.pw2526.util.ValidationUtils;
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,30 +31,25 @@ public class ReservaRestController {
      */
     @PostConstruct
     public void init() {
-        String sqlQueriesFileName = "./src/main/resources/db/sql.properties";
-        this.reservaRepository.setSQLQueriesFileName(sqlQueriesFileName);
+        // SQL queries file initialization is centralized by SqlQueriesInitializer
     }
 
     private String validarDatosReserva(Reserva reserva) {
-        if (reserva.getMatricula() == null || reserva.getMatricula().isEmpty()) {
-            return "La matrícula es obligatoria.";
+        String error = ValidationUtils.requireNonEmpty(reserva.getMatricula(), "La matrícula es obligatoria.");
+        if (error != null) {
+            return error;
         }
-        if (reserva.getFecha() == null) {
-            return "La fecha es obligatoria.";
+
+        error = ValidationUtils.requireNonNull(reserva.getFecha(), "La fecha es obligatoria.");
+        if (error != null) {
+            return error;
         }
-        if (reserva.getNumPasajeros() <= 0) {
-            return "El número de pasajeros debe ser mayor que 0.";
-        }
-        return null;
+
+        return ValidationUtils.requirePositive(reserva.getNumPasajeros(), "El número de pasajeros debe ser mayor que 0.");
     }
 
     private boolean existeReservaConMismaMatricula(List<Reserva> reservas, String matricula) {
-        for (Reserva reserva : reservas) {
-            if (reserva.getMatricula().equals(matricula)) {
-                return true;
-            }
-        }
-        return false;
+        return reservas.stream().anyMatch(reserva -> reserva.getMatricula().equals(matricula));
     }
 
     private ResponseEntity<String> validarCambioDeFecha(Reserva reserva, LocalDate nuevaFecha) {
@@ -106,18 +102,13 @@ public class ReservaRestController {
      */
     @GetMapping("/futuros")
     public ResponseEntity<List<Reserva>> getReservasFuturas() {
-        try {
-            // Refactor de nombrado: nombres consistentes con el dominio.
-            LocalDate fechaReferencia = LocalDate.now();
-            List<Reserva> reservasFuturas = reservaRepository.obtenerReservasFuturas(fechaReferencia);
+        LocalDate fechaReferencia = LocalDate.now();
+        List<Reserva> reservasFuturas = reservaRepository.obtenerReservasFuturas(fechaReferencia);
 
-            if (reservasFuturas == null || reservasFuturas.isEmpty()) {
-                return ResponseEntity.noContent().build();
-            }
-            return ResponseEntity.ok(reservasFuturas);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+        if (reservasFuturas == null || reservasFuturas.isEmpty()) {
+            return ResponseEntity.noContent().build();
         }
+        return ResponseEntity.ok(reservasFuturas);
     }
 
     /**
@@ -143,21 +134,16 @@ public class ReservaRestController {
      */
     @PostMapping(consumes = "application/json")
     public ResponseEntity<String> createReserva(@RequestBody Reserva reserva) {
-        try {
-            String errorValidacion = validarDatosReserva(reserva);
-            if (errorValidacion != null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorValidacion);
-            }
+        String errorValidacion = validarDatosReserva(reserva);
+        if (errorValidacion != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorValidacion);
+        }
 
-            boolean reservaCreada = reservaRepository.addReserva(reserva);
-            if (reservaCreada) {
-                return ResponseEntity.status(HttpStatus.CREATED)
-                        .body("Reserva creada correctamente.");
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("Error al crear la reserva.");
-            }
-        } catch (Exception e) {
+        boolean reservaCreada = reservaRepository.addReserva(reserva);
+        if (reservaCreada) {
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body("Reserva creada correctamente.");
+        } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al crear la reserva.");
         }
@@ -174,30 +160,25 @@ public class ReservaRestController {
     public ResponseEntity<String> modificarFechaReserva(
             @PathVariable("id") int id,
             @RequestParam("nuevaFecha") String nuevaFechaTexto) {
-        try {
-            Reserva reserva = reservaRepository.obtenerReservaPorId(id);
-            if (reserva == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("No existe la reserva con ID " + id);
-            }
+        Reserva reserva = reservaRepository.obtenerReservaPorId(id);
+        if (reserva == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No existe la reserva con ID " + id);
+        }
 
-            LocalDate nuevaFecha = LocalDate.parse(nuevaFechaTexto);
-            ResponseEntity<String> errorValidacion = validarCambioDeFecha(reserva, nuevaFecha);
-            if (errorValidacion != null) {
-                return errorValidacion;
-            }
+        LocalDate nuevaFecha = LocalDate.parse(nuevaFechaTexto);
+        ResponseEntity<String> errorValidacion = validarCambioDeFecha(reserva, nuevaFecha);
+        if (errorValidacion != null) {
+            return errorValidacion;
+        }
 
-            reserva.setFecha(nuevaFecha);
-            boolean actualizado = reservaRepository.updateReservaFecha(reserva);
-            if (actualizado) {
-                return ResponseEntity.ok("Fecha de reserva modificada correctamente.");
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("No se pudo actualizar la fecha de la reserva.");
-            }
-        } catch (Exception e) {
+        reserva.setFecha(nuevaFecha);
+        boolean actualizado = reservaRepository.updateReservaFecha(reserva);
+        if (actualizado) {
+            return ResponseEntity.ok("Fecha de reserva modificada correctamente.");
+        } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al modificar la fecha de la reserva.");
+                    .body("No se pudo actualizar la fecha de la reserva.");
         }
     }
 
@@ -214,34 +195,29 @@ public class ReservaRestController {
             @PathVariable("id") int id,
             @RequestParam(value = "descripcion", required = false) String descripcion,
             @RequestParam(value = "numPlazas", required = false) Integer numPlazas) {
-        try {
-            Reserva reserva = reservaRepository.obtenerReservaPorId(id);
-            if (reserva == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("No existe la reserva con ID " + id);
-            }
+        Reserva reserva = reservaRepository.obtenerReservaPorId(id);
+        if (reserva == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No existe la reserva con ID " + id);
+        }
 
-            if (descripcion != null) {
-                reserva.setDescripcionReserva(descripcion);
-            }
+        if (descripcion != null) {
+            reserva.setDescripcionReserva(descripcion);
+        }
 
-            if (numPlazas != null) {
-                ResponseEntity<String> errorPlazas = validarCambioDePlazas(reserva, numPlazas);
-                if (errorPlazas != null) {
-                    return errorPlazas;
-                }
+        if (numPlazas != null) {
+            ResponseEntity<String> errorPlazas = validarCambioDePlazas(reserva, numPlazas);
+            if (errorPlazas != null) {
+                return errorPlazas;
             }
+        }
 
-            boolean actualizado = reservaRepository.updateReservaDatos(reserva);
-            if (actualizado) {
-                return ResponseEntity.ok("Datos de la reserva modificados correctamente.");
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("No se pudo modificar los datos de la reserva.");
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al modificar los datos de la reserva.");
+        boolean actualizado = reservaRepository.updateReservaDatos(reserva);
+        if (actualizado) {
+            return ResponseEntity.ok("Datos de la reserva modificados correctamente.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("No se pudo modificar los datos de la reserva.");
         }
     }
     
@@ -254,26 +230,21 @@ public class ReservaRestController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<String> cancelarReserva(@PathVariable("id") int id) {
-        try {
-            Reserva reserva = reservaRepository.obtenerReservaPorId(id);
-            if (reserva == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("La reserva no existe.");
-            }
+        Reserva reserva = reservaRepository.obtenerReservaPorId(id);
+        if (reserva == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("La reserva no existe.");
+        }
 
-            if (!esReservaFutura(reserva)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Solo se pueden cancelar reservas FUTURAS.");
-            }
+        if (!esReservaFutura(reserva)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Solo se pueden cancelar reservas FUTURAS.");
+        }
 
-            boolean reservaCancelada = reservaRepository.cancelarReservaFutura(id);
-            if (reservaCancelada) {
-                return ResponseEntity.ok("Reserva cancelada correctamente.");
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("Error al cancelar la reserva.");
-            }
-        } catch (Exception e) {
+        boolean reservaCancelada = reservaRepository.cancelarReservaFutura(id);
+        if (reservaCancelada) {
+            return ResponseEntity.ok("Reserva cancelada correctamente.");
+        } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al cancelar la reserva.");
         }

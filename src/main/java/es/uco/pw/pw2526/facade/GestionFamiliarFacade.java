@@ -20,7 +20,6 @@ public class GestionFamiliarFacade {
 
     public GestionFamiliarFacade(SocioRepository socioRepository) {
         this.socioRepository = socioRepository;
-        this.socioRepository.setSQLQueriesFileName("sql.properties");
     }
 
     public boolean registrarInscripcionFamiliar(Socio socio) {

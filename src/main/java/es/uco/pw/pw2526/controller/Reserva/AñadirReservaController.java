@@ -35,19 +35,7 @@ public class AñadirReservaController {
         this.reservaRepository = reservaRepository;
         this.embarcacionRepository = embarcacionRepository;
         this.socioRepository = socioRepository;
-        String sqlQueriesFileName = "./src/main/resources/db/sql.properties";
-        try {
-            this.reservaRepository.setSQLQueriesFileName(sqlQueriesFileName);
-        } catch (Exception ignored) {
-        }
-        try {
-            this.embarcacionRepository.setSQLQueriesFileName(sqlQueriesFileName);
-        } catch (Exception ignored) {
-        }
-        try {
-            this.socioRepository.setSQLQueriesFileName(sqlQueriesFileName);
-        } catch (Exception ignored) {
-        }
+        // SQL initialization centralized in SqlQueriesInitializer
     }
 
     private ModelAndView crearRespuestaFallida(String error) {

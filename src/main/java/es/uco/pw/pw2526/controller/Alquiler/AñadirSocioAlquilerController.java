@@ -39,12 +39,7 @@ public class AñadirSocioAlquilerController {
         this.alquilerRepository = alquilerRepository;
         this.socioRepository = socioRepository;
         this.modelAndView = new ModelAndView();
-        String sqlQueriesFileName = "./src/main/resources/db/sql.properties";
-        this.alquilerRepository.setSQLQueriesFileName(sqlQueriesFileName);
-        try {
-            this.socioRepository.setSQLQueriesFileName(sqlQueriesFileName);
-        } catch (Exception ignored) {
-        }
+        // SQL initialization moved to SqlQueriesInitializer
     }
 
     private ModelAndView crearVistaFallo(String error) {

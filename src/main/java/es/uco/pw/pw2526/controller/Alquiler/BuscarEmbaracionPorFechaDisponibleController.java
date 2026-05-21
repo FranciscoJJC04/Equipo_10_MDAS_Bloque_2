@@ -41,15 +41,7 @@ public class BuscarEmbaracionPorFechaDisponibleController {
             EmbarcacionRepository embarcacionRepository) {
         this.alquilerRepository = alquilerRepository;
         this.embarcacionRepository = embarcacionRepository;
-        String sqlQueriesFileName = "./src/main/resources/db/sql.properties";
-        try {
-            this.alquilerRepository.setSQLQueriesFileName(sqlQueriesFileName);
-        } catch (Exception ignored) {
-        }
-        try {
-            this.embarcacionRepository.setSQLQueriesFileName(sqlQueriesFileName);
-        } catch (Exception ignored) {
-        }
+        // SQL queries initialization is centralized in SqlQueriesInitializer
     }
 
     private boolean estaDisponible(Embarcacion embarcacion, java.time.LocalDate inicio, java.time.LocalDate fin) {
@@ -85,7 +77,7 @@ public class BuscarEmbaracionPorFechaDisponibleController {
      * @param fin    fecha de fin (ISO date), opcional
      * @return ModelAndView con la vista y las embarcaciones disponibles
      */
-    public ModelAndView listarEmbaracionesDisponiblesPorFecha(
+    public ModelAndView listarEmbarcacionesDisponiblesPorFecha(
             @RequestParam(value = "inicio", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate inicio,
             @RequestParam(value = "fin", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate fin) {
 

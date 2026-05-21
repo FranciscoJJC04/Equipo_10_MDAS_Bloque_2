@@ -19,7 +19,6 @@ public class AlquilerRepository extends AbstractRepository {
 
     public AlquilerRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.setSQLQueriesFileName("db/sql.properties");
     }
 
     private Alquiler mapAlquiler(ResultSet rs) throws SQLException {
@@ -242,7 +241,7 @@ public class AlquilerRepository extends AbstractRepository {
 /** Lista matrículas de embarcaciones disponibles en el rango [inicio, fin] (ambas incluidas).
  *  Devuelve null en caso de error (como el resto de este repo) o la lista de matriculas.
  */
-public List<String> listarEmbaracionesDisponiblesPorFecha(java.time.LocalDate inicio, java.time.LocalDate fin) {
+public List<String> listarEmbarcacionesDisponiblesPorFecha(java.time.LocalDate inicio, java.time.LocalDate fin) {
     try {
         String listarDisponiblesQuery = sqlQueries.getProperty("listar-embarcaciones-disponibles-por-fecha");
         if (listarDisponiblesQuery == null) {

@@ -22,8 +22,6 @@ public class AñadirEmbarcacionController {
 
     public AñadirEmbarcacionController(EmbarcacionRepository embarcacionRepository) {
         this.embarcacionRepository = embarcacionRepository;
-        String sqlQueriesFileName = "./src/main/resources/db/sql.properties";
-        this.embarcacionRepository.setSQLQueriesFileName(sqlQueriesFileName);
     }
 
     @GetMapping("/addEmbarcacion")

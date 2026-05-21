@@ -20,8 +20,6 @@ public class ListarAlquilerController {
 
     public ListarAlquilerController(AlquilerRepository alquilerRepository) {
         this.alquilerRepository = alquilerRepository;
-        String sqlQueriesFileName = "./src/main/resources/db/sql.properties";
-        this.alquilerRepository.setSQLQueriesFileName(sqlQueriesFileName);
     }
 
     

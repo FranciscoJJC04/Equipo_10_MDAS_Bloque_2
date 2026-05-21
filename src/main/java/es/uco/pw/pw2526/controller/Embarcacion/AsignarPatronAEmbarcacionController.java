@@ -2,7 +2,6 @@ package es.uco.pw.pw2526.controller.Embarcacion;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
@@ -21,18 +20,15 @@ import es.uco.pw.pw2526.model.domain.patron.Patron;
 import org.springframework.format.annotation.DateTimeFormat;
 
 @Controller
-class AsignarPatronaEmbarcacionController {
+class AsignarPatronAEmbarcacionController {
     private ModelAndView modelAndView = new ModelAndView();
     private final EmbarcacionRepository embarcacionRepository;
     private final PatronRepository patronRepository;
 
-    public AsignarPatronaEmbarcacionController(EmbarcacionRepository embarcacionRepository,
+    public AsignarPatronAEmbarcacionController(EmbarcacionRepository embarcacionRepository,
             PatronRepository patronRepository) {
         this.embarcacionRepository = embarcacionRepository;
         this.patronRepository = patronRepository;
-        String sqlQueriesFileName = "./src/main/resources/db/sql.properties";
-        this.embarcacionRepository.setSQLQueriesFileName(sqlQueriesFileName);
-        this.patronRepository.setSQLQueriesFileName(sqlQueriesFileName);
     }
 
     private List<Embarcacion> obtenerEmbarcacionesPorTipo() {

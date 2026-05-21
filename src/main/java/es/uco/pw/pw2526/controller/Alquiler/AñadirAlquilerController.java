@@ -48,18 +48,7 @@ public class AñadirAlquilerController {
         this.alquilerRepository = alquilerRepository;
         this.embarcacionRepository = embarcacionRepository;
         this.socioRepository = socioRepository;
-        String sqlQueriesFileName = "./src/main/resources/db/sql.properties";
-        this.alquilerRepository.setSQLQueriesFileName(sqlQueriesFileName);
-        // If the other repositories expose the same setter, try to set it as well
-        // (silent if not supported)
-        try {
-            this.embarcacionRepository.setSQLQueriesFileName(sqlQueriesFileName);
-        } catch (Exception ignored) {
-        }
-        try {
-            this.socioRepository.setSQLQueriesFileName(sqlQueriesFileName);
-        } catch (Exception ignored) {
-        }
+        // SQL initialization centralized in SqlQueriesInitializer
     }
 
     private ModelAndView crearRespuestaFallida(String vista, String error) {

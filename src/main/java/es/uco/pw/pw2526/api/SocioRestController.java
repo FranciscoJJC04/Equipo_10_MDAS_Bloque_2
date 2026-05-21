@@ -31,8 +31,6 @@ public class SocioRestController {
 
     public SocioRestController(SocioRepository socioRepository) {
         this.socioRepository = socioRepository;
-        String sqlQueriesFileName = "./src/main/resources/db/sql.properties";
-        this.socioRepository.setSQLQueriesFileName(sqlQueriesFileName);
     }
 
     private void aplicarActualizacionesParciales(Socio currentSocio, Socio requestSocio) {

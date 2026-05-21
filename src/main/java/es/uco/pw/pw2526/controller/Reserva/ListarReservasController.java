@@ -20,8 +20,7 @@ public class ListarReservasController {
 
     public ListarReservasController(ReservaRepository reservaRepository) {
         this.reservaRepository = reservaRepository;
-        String sqlQueriesFileName = "./src/main/resources/db/sql.properties";
-        this.reservaRepository.setSQLQueriesFileName(sqlQueriesFileName);
+        // SQL initialization centralized in SqlQueriesInitializer
     }
 
     @GetMapping("/ListarReservas")

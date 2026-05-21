@@ -22,8 +22,7 @@ public class InsertarSocioController {
 
     public InsertarSocioController(SocioRepository socioRepository) {
         this.socioRepository = socioRepository;
-        String sqlQueriesFileName = "./src/main/resources/db/sql.properties";
-        this.socioRepository.setSQLQueriesFileName(sqlQueriesFileName);
+        // SQL initialization centralized in SqlQueriesInitializer
     }
 
     @GetMapping("/addSocio")

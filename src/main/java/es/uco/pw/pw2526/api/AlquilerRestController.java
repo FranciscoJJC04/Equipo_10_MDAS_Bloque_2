@@ -18,7 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import es.uco.pw.pw2526.model.domain.alquiler.Alquiler;
 import es.uco.pw.pw2526.model.repository.AlquilerRepository;
-import jakarta.annotation.PostConstruct;
+import es.uco.pw.pw2526.util.ValidationUtils;
+// SQL initialization handled by SqlQueriesInitializer
 
 /**
  * Controlador REST para gestionar los alquileres de embarcaciones.
@@ -39,26 +40,24 @@ public class AlquilerRestController {
      * 
      * Este método es ejecutado después de la construcción del bean.
      */
-    @PostConstruct
-    public void init() {
-        String sqlQueriesFileName = "./src/main/resources/db/sql.properties";
-        this.alquilerRepository.setSQLQueriesFileName(sqlQueriesFileName);
-    }
+    // SQL initialization handled by SqlQueriesInitializer
 
     private String validarDatosAlquiler(Alquiler alquiler) {
-        if (alquiler.getMatricula() == null || alquiler.getMatricula().isEmpty()) {
-            return "La matrícula es obligatoria.";
+        String error = ValidationUtils.requireNonEmpty(alquiler.getMatricula(), "La matrícula es obligatoria.");
+        if (error != null) {
+            return error;
         }
-        if (alquiler.getFechaInicio() == null || alquiler.getFechaFin() == null) {
-            return "Las fechas de inicio y fin son obligatorias.";
+
+        error = ValidationUtils.requireDateRange(
+                alquiler.getFechaInicio(),
+                alquiler.getFechaFin(),
+                "Las fechas de inicio y fin son obligatorias.",
+                "La fecha de fin no puede ser anterior a la fecha de inicio.");
+        if (error != null) {
+            return error;
         }
-        if (alquiler.getFechaFin().isBefore(alquiler.getFechaInicio())) {
-            return "La fecha de fin no puede ser anterior a la fecha de inicio.";
-        }
-        if (alquiler.getNumPasajeros() <= 0) {
-            return "El número de pasajeros debe ser mayor que 0.";
-        }
-        return null;
+
+        return ValidationUtils.requirePositive(alquiler.getNumPasajeros(), "El número de pasajeros debe ser mayor que 0.");
     }
 
     private boolean esAlquilerFuturo(Alquiler alquiler) {
@@ -84,19 +83,13 @@ public class AlquilerRestController {
      */
     @GetMapping("/futuros/{fecha}")
     public ResponseEntity<List<Alquiler>> getAlquileresFuturos(@PathVariable("fecha") String fechaTexto) {
-        try {
-            // Refactor de nombrado: variables con intención explícita.
-            LocalDate fechaReferencia = LocalDate.parse(fechaTexto);
-            List<Alquiler> alquileresFuturos = alquilerRepository.obtenerAlquileresFuturos(fechaReferencia);
+        LocalDate fechaReferencia = LocalDate.parse(fechaTexto);
+        List<Alquiler> alquileresFuturos = alquilerRepository.obtenerAlquileresFuturos(fechaReferencia);
 
-            if (alquileresFuturos == null || alquileresFuturos.isEmpty()) {
-                return ResponseEntity.noContent().build();
-            }
-            return ResponseEntity.ok(alquileresFuturos);
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+        if (alquileresFuturos == null || alquileresFuturos.isEmpty()) {
+            return ResponseEntity.noContent().build();
         }
+        return ResponseEntity.ok(alquileresFuturos);
     }
 
     /**
@@ -126,20 +119,15 @@ public class AlquilerRestController {
             @RequestParam("inicio") String inicio,
             @RequestParam("fin") String fin) {
 
-        try {
-            LocalDate fechaInicio = LocalDate.parse(inicio);
-            LocalDate fechaFin = LocalDate.parse(fin);
+        LocalDate fechaInicio = LocalDate.parse(inicio);
+        LocalDate fechaFin = LocalDate.parse(fin);
 
-            List<String> matriculasDisponibles = alquilerRepository.listarEmbaracionesDisponiblesPorFecha(fechaInicio, fechaFin);
+        List<String> matriculasDisponibles = alquilerRepository.listarEmbarcacionesDisponiblesPorFecha(fechaInicio, fechaFin);
 
-            if (matriculasDisponibles == null || matriculasDisponibles.isEmpty()) {
-                return ResponseEntity.noContent().build();
-            }
-            return ResponseEntity.ok(matriculasDisponibles);
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+        if (matriculasDisponibles == null || matriculasDisponibles.isEmpty()) {
+            return ResponseEntity.noContent().build();
         }
+        return ResponseEntity.ok(matriculasDisponibles);
     }
 
     /**
@@ -150,24 +138,18 @@ public class AlquilerRestController {
      */
     @PostMapping(consumes = "application/json")
     public ResponseEntity<String> createAlquiler(@RequestBody Alquiler alquiler) {
-        try {
-            String errorValidacion = validarDatosAlquiler(alquiler);
-            if (errorValidacion != null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorValidacion);
-            }
+        String errorValidacion = validarDatosAlquiler(alquiler);
+        if (errorValidacion != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorValidacion);
+        }
 
-            boolean alquilerCreado = alquilerRepository.addAlquiler(alquiler);
-            if (alquilerCreado) {
-                return ResponseEntity.status(HttpStatus.CREATED)
-                        .body("Alquiler creado correctamente.");
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("Error al crear el alquiler.");
-            }
-
-        } catch (Exception e) {
+        boolean alquilerCreado = alquilerRepository.addAlquiler(alquiler);
+        if (alquilerCreado) {
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body("Alquiler creado correctamente.");
+        } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al crear alquiler.");
+                    .body("Error al crear el alquiler.");
         }
     }
 
@@ -183,31 +165,25 @@ public class AlquilerRestController {
             @PathVariable("id") int id,
             @RequestParam("dni") String dniSocio) {
 
-        try {
-            Alquiler alquiler = alquilerRepository.obtenerAlquilerPorId(id);
+        Alquiler alquiler = alquilerRepository.obtenerAlquilerPorId(id);
 
-            if (alquiler == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("No existe el alquiler con ID " + id);
-            }
+        if (alquiler == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No existe el alquiler con ID " + id);
+        }
 
-            if (!esAlquilerFuturo(alquiler)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Solo se puede vincular socios en alquileres FUTUROS.");
-            }
+        if (!esAlquilerFuturo(alquiler)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Solo se puede vincular socios en alquileres FUTUROS.");
+        }
 
-            boolean socioVinculado = alquilerRepository.addSocioAlquiler(dniSocio, id);
+        boolean socioVinculado = alquilerRepository.addSocioAlquiler(dniSocio, id);
 
-            if (socioVinculado) {
-                return ResponseEntity.ok("Socio vinculado correctamente.");
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("No se pudo vincular el socio.");
-            }
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al vincular socio.");
+        if (socioVinculado) {
+            return ResponseEntity.ok("Socio vinculado correctamente.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("No se pudo vincular el socio.");
         }
     }
 
@@ -223,31 +199,25 @@ public class AlquilerRestController {
             @PathVariable("id") int id,
             @RequestParam("dni") String dniSocio) {
 
-        try {
-            Alquiler alquiler = alquilerRepository.obtenerAlquilerPorId(id);
+        Alquiler alquiler = alquilerRepository.obtenerAlquilerPorId(id);
 
-            if (alquiler == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("No existe el alquiler con ID " + id);
-            }
+        if (alquiler == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No existe el alquiler con ID " + id);
+        }
 
-            if (!esAlquilerFuturo(alquiler)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Solo se puede desvincular socios en alquileres FUTUROS.");
-            }
+        if (!esAlquilerFuturo(alquiler)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Solo se puede desvincular socios en alquileres FUTUROS.");
+        }
 
-            boolean socioDesvinculado = alquilerRepository.desvincularSocioNoTitular(id, dniSocio);
+        boolean socioDesvinculado = alquilerRepository.desvincularSocioNoTitular(id, dniSocio);
 
-            if (socioDesvinculado) {
-                return ResponseEntity.ok("Socio desvinculado correctamente.");
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("No se pudo desvincular el socio.");
-            }
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al desvincular socio.");
+        if (socioDesvinculado) {
+            return ResponseEntity.ok("Socio desvinculado correctamente.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("No se pudo desvincular el socio.");
         }
     }
 
@@ -260,31 +230,25 @@ public class AlquilerRestController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> cancelarAlquiler(@PathVariable("id") int id) {
 
-        try {
-            Alquiler alquiler = alquilerRepository.obtenerAlquilerPorId(id);
+        Alquiler alquiler = alquilerRepository.obtenerAlquilerPorId(id);
 
-            if (alquiler == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("El alquiler no existe.");
-            }
+        if (alquiler == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("El alquiler no existe.");
+        }
 
-            if (!esAlquilerFuturo(alquiler)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Solo se pueden cancelar alquileres FUTUROS.");
-            }
+        if (!esAlquilerFuturo(alquiler)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Solo se pueden cancelar alquileres FUTUROS.");
+        }
 
-            boolean alquilerCancelado = alquilerRepository.cancelarAlquilerFuturo(id);
+        boolean alquilerCancelado = alquilerRepository.cancelarAlquilerFuturo(id);
 
-            if (alquilerCancelado) {
-                return ResponseEntity.ok("Alquiler cancelado correctamente.");
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("Error al cancelar el alquiler.");
-            }
-
-        } catch (Exception e) {
+        if (alquilerCancelado) {
+            return ResponseEntity.ok("Alquiler cancelado correctamente.");
+        } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al cancelar alquiler.");
+                    .body("Error al cancelar el alquiler.");
         }
     }
 }

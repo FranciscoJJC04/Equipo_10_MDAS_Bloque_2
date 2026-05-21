@@ -5,6 +5,7 @@ import es.uco.pw.pw2526.model.domain.embarcacion.TipoEmbarcacion;
 import es.uco.pw.pw2526.model.domain.patron.Patron;
 import es.uco.pw.pw2526.model.repository.EmbarcacionRepository;
 import es.uco.pw.pw2526.model.repository.PatronRepository;
+import es.uco.pw.pw2526.util.ValidationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,38 +41,37 @@ public class FlotaPatronRestController {
      */
     @PostConstruct
     public void init() {
-        String sqlQueriesFileName = "./src/main/resources/db/sql.properties";
-        this.patronRepository.setSQLQueriesFileName(sqlQueriesFileName);
-        this.embarcacionRepository.setSQLQueriesFileName(sqlQueriesFileName);
+        // SQL queries file initialization is centralized by SqlQueriesInitializer
     }
 
     private String validarNuevaEmbarcacion(Embarcacion embarcacion) {
-        if (embarcacion.getMatricula() == null || embarcacion.getMatricula().isEmpty()) {
-            return "La matrícula es obligatoria.";
+        String error = ValidationUtils.requireNonEmpty(embarcacion.getMatricula(), "La matrícula es obligatoria.");
+        if (error != null) {
+            return error;
         }
         if (embarcacion.getTipo() == null || embarcacion.getTipo() == TipoEmbarcacion.NONE) {
             return "El tipo de embarcación es obligatorio.";
         }
-        if (embarcacion.getNumPlazas() <= 0) {
-            return "El número de plazas debe ser mayor que 0.";
-        }
-        return null;
+        return ValidationUtils.requirePositive(embarcacion.getNumPlazas(), "El número de plazas debe ser mayor que 0.");
     }
 
     private String validarNuevoPatron(Patron patron) {
-        if (patron.getDniPatron() == null || patron.getDniPatron().isEmpty()) {
-            return "El DNI del patrón es obligatorio.";
+        String error = ValidationUtils.requireNonEmpty(patron.getDniPatron(), "El DNI del patrón es obligatorio.");
+        if (error != null) {
+            return error;
         }
-        if (patron.getNombre() == null || patron.getNombre().isEmpty()) {
-            return "El nombre del patrón es obligatorio.";
+
+        error = ValidationUtils.requireNonEmpty(patron.getNombre(), "El nombre del patrón es obligatorio.");
+        if (error != null) {
+            return error;
         }
-        if (patron.getApellido() == null || patron.getApellido().isEmpty()) {
-            return "El apellido del patrón es obligatorio.";
+
+        error = ValidationUtils.requireNonEmpty(patron.getApellido(), "El apellido del patrón es obligatorio.");
+        if (error != null) {
+            return error;
         }
-        if (patron.getFechaNacimiento() == null) {
-            return "La fecha de nacimiento del patrón es obligatoria.";
-        }
-        return null;
+
+        return ValidationUtils.requireNonNull(patron.getFechaNacimiento(), "La fecha de nacimiento del patrón es obligatoria.");
     }
 
     private void aplicarActualizacionesEmbarcacion(Embarcacion currentEmbarcacion, Embarcacion requestEmbarcacion) {
@@ -147,20 +147,16 @@ public class FlotaPatronRestController {
      */
     @PostMapping(path = "/embarcaciones", consumes = "application/json")
     public ResponseEntity<String> createEmbarcacion(@RequestBody Embarcacion embarcacion) {
-        try {
-            String errorValidacion = validarNuevaEmbarcacion(embarcacion);
-            if (errorValidacion != null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorValidacion);
-            }
+        String errorValidacion = validarNuevaEmbarcacion(embarcacion);
+        if (errorValidacion != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorValidacion);
+        }
 
-            boolean embarcacionCreada = embarcacionRepository.addEmbarcacion(embarcacion);
-            if (embarcacionCreada) {
-                return ResponseEntity.status(HttpStatus.CREATED).body("Embarcación creada con éxito.");
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear la embarcación.");
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear embarcación.");
+        boolean embarcacionCreada = embarcacionRepository.addEmbarcacion(embarcacion);
+        if (embarcacionCreada) {
+            return ResponseEntity.status(HttpStatus.CREATED).body("Embarcación creada con éxito.");
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear la embarcación.");
         }
     }
 
@@ -172,20 +168,16 @@ public class FlotaPatronRestController {
      */
     @PostMapping(path = "/patrones", consumes = "application/json")
     public ResponseEntity<String> createPatron(@RequestBody Patron patron) {
-        try {
-            String errorValidacion = validarNuevoPatron(patron);
-            if (errorValidacion != null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorValidacion);
-            }
+        String errorValidacion = validarNuevoPatron(patron);
+        if (errorValidacion != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorValidacion);
+        }
 
-            boolean patronCreado = patronRepository.addPatron(patron);
-            if (patronCreado) {
-                return ResponseEntity.status(HttpStatus.CREATED).body("Patrón creado con éxito.");
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear el patrón.");
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear patrón.");
+        boolean patronCreado = patronRepository.addPatron(patron);
+        if (patronCreado) {
+            return ResponseEntity.status(HttpStatus.CREATED).body("Patrón creado con éxito.");
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al crear el patrón.");
         }
     }
 
@@ -201,24 +193,18 @@ public class FlotaPatronRestController {
     @PatchMapping(path = "/embarcaciones/{matricula}", consumes = "application/json")
     public ResponseEntity<Embarcacion> patchEmbarcacion(@PathVariable String matricula,
             @RequestBody Embarcacion requestEmbarcacion) {
-        try {
-            // Buscar embarcación actual por matrícula
-            Embarcacion currentEmbarcacion = this.embarcacionRepository.findByMatricula(matricula);
-            if (currentEmbarcacion != null) {
-                requestEmbarcacion.setMatricula(currentEmbarcacion.getMatricula());
-                aplicarActualizacionesEmbarcacion(currentEmbarcacion, requestEmbarcacion);
-                boolean embarcacionActualizada = embarcacionRepository.updateEmbarcacion(currentEmbarcacion);
-                if (embarcacionActualizada) {
-                    return ResponseEntity.ok(currentEmbarcacion);
-                } else {
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(currentEmbarcacion);
-                }
+        Embarcacion currentEmbarcacion = this.embarcacionRepository.findByMatricula(matricula);
+        if (currentEmbarcacion != null) {
+            requestEmbarcacion.setMatricula(currentEmbarcacion.getMatricula());
+            aplicarActualizacionesEmbarcacion(currentEmbarcacion, requestEmbarcacion);
+            boolean embarcacionActualizada = embarcacionRepository.updateEmbarcacion(currentEmbarcacion);
+            if (embarcacionActualizada) {
+                return ResponseEntity.ok(currentEmbarcacion);
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(currentEmbarcacion);
             }
-        } catch (Exception e) {
-            System.err.println("Error en PATCH embarcación: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(requestEmbarcacion);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 
@@ -233,24 +219,18 @@ public class FlotaPatronRestController {
      */
     @PatchMapping(path = "/patrones/{dni}", consumes = "application/json")
     public ResponseEntity<Patron> patchPatron(@PathVariable String dni, @RequestBody Patron requestPatron) {
-        try {
-            // Buscar patrón actual por DNI
-            Patron currentPatron = this.patronRepository.findByDni(dni);
-            if (currentPatron != null) {
-                requestPatron.setDniPatron(currentPatron.getDniPatron());
-                aplicarActualizacionesPatron(currentPatron, requestPatron);
-                boolean patronActualizado = patronRepository.updatePatron(currentPatron);
-                if (patronActualizado) {
-                    return ResponseEntity.ok(currentPatron);
-                } else {
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(requestPatron);
-                }
+        Patron currentPatron = this.patronRepository.findByDni(dni);
+        if (currentPatron != null) {
+            requestPatron.setDniPatron(currentPatron.getDniPatron());
+            aplicarActualizacionesPatron(currentPatron, requestPatron);
+            boolean patronActualizado = patronRepository.updatePatron(currentPatron);
+            if (patronActualizado) {
+                return ResponseEntity.ok(currentPatron);
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(requestPatron);
             }
-        } catch (Exception e) {
-            System.err.println("Error en PATCH patrón: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(requestPatron);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 

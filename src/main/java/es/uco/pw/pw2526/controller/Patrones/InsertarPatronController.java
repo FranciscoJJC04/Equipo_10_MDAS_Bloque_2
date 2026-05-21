@@ -22,8 +22,6 @@ public class InsertarPatronController {
         
     public InsertarPatronController(PatronRepository patronRepository){
         this.patronRepository = patronRepository;
-        String sqlQueriesFileName = "./src/main/resources/db/sql.properties";
-        this.patronRepository.setSQLQueriesFileName(sqlQueriesFileName);
     }
 
     @GetMapping("/addPatron")

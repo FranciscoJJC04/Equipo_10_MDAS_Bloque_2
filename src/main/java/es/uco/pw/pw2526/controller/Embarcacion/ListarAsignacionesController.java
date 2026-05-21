@@ -21,8 +21,6 @@ public class ListarAsignacionesController {
 
     public ListarAsignacionesController(EmbarcacionRepository embarcacionRepository) {
         this.embarcacionRepository = embarcacionRepository;
-        String sqlQueriesFileName = "./src/main/resources/db/sql.properties";
-        this.embarcacionRepository.setSQLQueriesFileName(sqlQueriesFileName);
     }
 
     @GetMapping("/listarAsignaciones")
